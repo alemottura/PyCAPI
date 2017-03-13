@@ -1,7 +1,7 @@
-import canvas_api
+import PyCAPI
 import json
 import datetime
-capi = canvas_api.CanvasAPI()
+capi = PyCAPI.CanvasAPI()
 
 ################################################################################
 
