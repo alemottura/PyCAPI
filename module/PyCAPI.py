@@ -87,6 +87,15 @@ class CanvasAPI():
 		"""Obtain users in a specific course."""
 		return self.get('/courses/%s/users' % course_id)
 
+	def get_user_activity_summary(self):
+                """Obtain summary of users activity - Sam"""
+                return self.get('/users/self/activity_stream/summary')
+
+        def get_user_submission_details(self, course_id, assignment_id, user_id):
+                """Obtain details about a user submissions - Sam"""
+                """This function currently doesn't work as running it does not retrieve information"""
+                return self.get('/courses/%s/assignments/%s/submissions/%s' % (course_id, assignment_id, user_id))
+
 	def get_quiz_submissions(self, course_id, quiz_id):
 		"""Obtain submissions of a quiz."""
 		return self.get('/courses/%s/quizzes/%s/submissions' % (course_id, quiz_id))

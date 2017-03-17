@@ -1,10 +1,12 @@
-import PyCAPI
+import PyCAPI # I am having an error where module PyCAPI cannot be found
 import json
 import datetime
 capi = PyCAPI.CanvasAPI()
 
-################################################################################
-
+"""
+Function for taking the datetime string returned from Canvas
+and comparaing it with computer time
+"""
 def overdue(assignment_due_date_string,current_datetime):
     is_overdue = False
     
@@ -33,15 +35,16 @@ def overdue(assignment_due_date_string,current_datetime):
 
     return is_overdue
 
-################################################################################
-
 print ''
 
-requested_user_id = 123178
+requested_user_id = # Enter user user ID here
 user = capi.get_user(requested_user_id)
 courses = capi.get_courses()
 current_datetime = str(datetime.datetime.now())[:19]
 
+"""
+Returns the selected users details
+"""
 print user['name'] + ' (ID: ' + str(user['id']) + ')'
 print 'Email: ' + user['primary_email']
 print ''
@@ -50,6 +53,9 @@ print 'See user courses? y/n'
 request_courses = raw_input()
 print ''
 
+"""
+Returns users courses
+"""
 if request_courses == 'y' or request_courses == 'Y' or request_courses == 'yes' or request_courses == 'Yes':
     print 'Courses enrolled on: '
     for course in courses:
@@ -60,6 +66,9 @@ print 'See user assignments detail? y/n'
 request_assignments = raw_input()
 print ''
 
+"""
+Returns users assignments
+"""
 if request_assignments == 'y' or request_assignments == 'Y' or request_assignments == 'yes' or request_assignments == 'Yes':
     for course in courses:
         print str(course['id']) + ': ' + course['name']
@@ -80,6 +89,9 @@ print 'Check for overdue assignments? y/n'
 request_overdue = raw_input()
 print ''
 
+"""
+Returns users overdue assignments
+"""
 if request_overdue == 'y' or request_overdue == 'Y' or request_overdue == 'yes' or request_overdue == 'Yes':
     overdue_assignment_no = 0
     for course in courses:
@@ -100,7 +112,12 @@ if request_overdue == 'y' or request_overdue == 'Y' or request_overdue == 'yes' 
     print 'Number of overdue assignments: ' + str(overdue_assignment_no)
     print ''
 
-'''
+"""
+Returns submission details for user submissions
+This section is commented out because the get_user_submission_details
+function does not work in PyCAPI as no information is returned
+"""
+"""
 print 'See user submission summary? y/n'
 request_user_submission_summary = raw_input()
 print ''
@@ -117,12 +134,15 @@ if request_user_submission_summary == 'y' or request_user_submission_summary == 
                 print '         Score: ' + str(submission_details['score'])
                 print '         Out of: ' + str(assignment['points_possible'])
                 print '         Late: ' + str(submission_details['late'])
-'''
+"""
 
 print 'See user notification activity summary? y/n'
 request_activity_summary = raw_input()
 print ''
 
+"""
+Returns users notifications summary
+"""
 if request_activity_summary == 'y' or request_activity_summary == 'Y' or request_activity_summary == 'yes' or request_activity_summary == 'Yes':
     user_activity_summary = capi.get_user_activity_summary()
     print 'User notification activity summary: | Total(Unread)'
