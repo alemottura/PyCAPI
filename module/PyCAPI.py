@@ -66,6 +66,7 @@ class CanvasAPI():
 		r.raise_for_status() # raise an exception if there is an http error
 		return r # return result of request
 
+
 	def get_user(self, user_id):
 		"""Obtains the profile of a user."""
 		return self.get('/users/%s/profile' % user_id, single=True)
@@ -78,17 +79,40 @@ class CanvasAPI():
 		"""Obtains membership of a group."""
 		return self.get('/groups/%s/memberships' % group_id)
 
-	def get_course(self, course_id):
-		"""Obtain specific course using course ID."""
-		return self.get('/courses/%s' % course_id, single=True)
+	def get_course(self, course_id, include=False):
+		"""
+		Obtain specific course using course ID.
+		
+		include is an optional list of strings which can include values such as:
+		'term', 'teachers', 'needs_grading_count', etc.
+		in order to obtain more information from the course
+		"""
+		payload = {}
+		if include != False:
+			payload['include[]'] = include
+		return self.get('/courses/%s' % course_id, single=True, payload=payload)
 
-	def get_courses(self):
-		"""Obtain list of courses for the authorised user."""
-		return self.get('/courses')
+	def get_courses(self, include=False, state=False):
+		"""
+		Obtain list of courses for the authorised user.
+		
+		include is an optional list of strings which can include values such as:
+		'term', 'teachers', 'needs_grading_count', etc.
+		in order to obtain more information from the course
+		
+		state is an optional list of strings which can be used to request only courses that match the requested state such as:
+		'ubpublished', 'available', 'completed' and 'deleted'
+		"""
+		payload = {}
+		if include != False:
+			payload['include[]'] = include
+		if state != False:
+			payload['state[]'] = state
+		return self.get('/courses', payload=payload)
 
 	def get_account_courses(self, account_id, include=False, state=False):
 		"""
-		Obtain list of course for a specific account or sub-account.
+		Obtain list of courses for a specific account or sub-account.
 		
 		include is an optional list of strings which can include values such as:
 		'term', 'teachers', 'needs_grading_count', etc.
@@ -171,9 +195,6 @@ class CanvasAPI():
 				else:
 					attachments[attachment['filename']] = r.text
 		return attachments
-
-	def custom_get(self,custom_url):
-		return self.get(custom_url)
 
 	def update_course(self, course_id, parameter, value):
 		"""Update course details for a specific course. See online documentation for allowed parameters."""
