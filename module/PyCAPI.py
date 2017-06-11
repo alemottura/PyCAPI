@@ -2,6 +2,7 @@
 import itertools
 import requests
 import os
+import collections
 
 class CanvasAPI():
 	""""""
@@ -30,12 +31,23 @@ class CanvasAPI():
 		r.raise_for_status() # raise an exception if there is an http error
 		return r # return result of request
 
-	def post(self, api_url, payload=None):
+	def post(self, api_url, to_json=True, payload=None):
 		url = self.api_url + api_url # compose url for post request
 		if payload is None: # if no payload, send empty payload
 			payload = {}
 		r = self.session.post(url, data=payload) # send post request with data
 		r.raise_for_status() # raise an exception if there is an http error
+		if to_json:
+			r = r.json()
+		return r # return result of request
+
+	def post_file(self,url, to_json=True, payload=None):
+		if payload is None: # if no payload, send empty payload
+			payload = {}
+		r = requests.post(url, files=payload) # post to url including multi-part data
+		r.raise_for_status() # raise an exception if there is an http error
+		if to_json:
+			r = r.json()
 		return r # return result of request
 
 	def get(self, api, to_json=True, payload=None, single=False):
@@ -59,10 +71,10 @@ class CanvasAPI():
 			return list(reduce(lambda x, y: itertools.chain(x, y), responses))
 
 	def delete(self, api_url, payload=None):
-		url = self.api_url + api_url # compose url for post request
+		url = self.api_url + api_url # compose url for delete request
 		if payload is None: # if no payload, send empty payload
 			payload = {}
-		r = self.session.delete(url, data=payload) # send post request with data
+		r = self.session.delete(url, data=payload) # send delete request with data
 		r.raise_for_status() # raise an exception if there is an http error
 		return r # return result of request
 
@@ -206,4 +218,16 @@ class CanvasAPI():
 		payload = {'event':'conclude'}
 		return self.delete('/courses/%s' % course_id, payload=payload)
 	
+	def upload_course_file(self, course_id, file_name, file_path='/'):
+		"""Upload file to course files."""
+		payload = {}
+		payload['name'] = file_name
+		payload['parent_folder_path'] = file_path
+		pending_object = self.post('/courses/%s/files' % course_id, payload=payload) # Make post request to Canvas to create pending object
+		payload = list(pending_object['upload_params'].items())
+		with open('test.pdf', 'rb') as f:
+			file_content = f.read() # Add file content to payload returned by previous post request
+		payload.append((u'file', file_content))
+		return self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
 
+		
