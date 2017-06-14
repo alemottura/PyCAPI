@@ -2,7 +2,7 @@
 import itertools
 import requests
 import os
-import collections
+
 
 class CanvasAPI():
 	""""""
@@ -79,9 +79,19 @@ class CanvasAPI():
 		return r # return result of request
 
 
+
+
+
+
+
+	# USER-RELATED FUNCTIONS
 	def get_user(self, user_id):
 		"""Obtains the profile of a user."""
 		return self.get('/users/%s/profile' % user_id, single=True)
+
+	def get_users(self, course_id):
+		"""Obtain users in a specific course."""
+		return self.get('/courses/%s/users' % course_id)
 
 	def get_course_groups(self, course_id):
 		"""Obtains groups within a course."""
@@ -90,83 +100,109 @@ class CanvasAPI():
 	def get_group_membership(self, group_id):
 		"""Obtains membership of a group."""
 		return self.get('/groups/%s/memberships' % group_id)
+	
+	def set_group_name(self, group_id, name):
+		"""Set name of a group."""
+		payload = {'name': name}
+		return self.put('/groups/%s' % (group_id), payload=payload)
+	
+	def set_group_membership(self, group_set_builder):
+		"""Add members to a group."""
+		results = []
+		for group_id, membership in group_set_builder.groups.iteritems():            
+			payload = {}
+			payload['members[]'] = membership
+			self.put('/groups/%s' % (group_id), payload=payload)
 
-	def get_course(self, course_id, include=False):
+	def get_user_activity_summary(self):
+		"""Obtain summary of users activity"""
+		return self.get('/users/self/activity_stream/summary')
+
+
+
+
+
+	
+
+	# COURSE-RELATED FUNCTIONS
+	def get_courses(self, course_id=None, account_id=None, include=None, state=None):
 		"""
-		Obtain specific course using course ID.
-		
-		include is an optional list of strings which can include values such as:
-		'term', 'teachers', 'needs_grading_count', etc.
-		in order to obtain more information from the course
+		Obtain course details.
+		  - If course_id is set, then this returns details for the requested course
+		  - If account_id is set, then this returns details of all courses in the account (if you have necessary account permissions)
+		  - If none of these are set, then this returns details of all courses the user is enrolled in
+		  - Include is an optional list of strings which can include values such as:
+		       'term', 'teachers', 'needs_grading_count', etc.
+		    in order to obtain more information from the course
+		  - State is an optional list of strings which can be used to request only courses that match the requested state such as:
+		       'ubpublished', 'available', 'completed' and 'deleted'
 		"""
 		payload = {}
-		if include != False:
+		if include != None:
 			payload['include[]'] = include
-		return self.get('/courses/%s' % course_id, single=True, payload=payload)
-
-	def get_courses(self, include=False, state=False):
-		"""
-		Obtain list of courses for the authorised user.
-		
-		include is an optional list of strings which can include values such as:
-		'term', 'teachers', 'needs_grading_count', etc.
-		in order to obtain more information from the course
-		
-		state is an optional list of strings which can be used to request only courses that match the requested state such as:
-		'ubpublished', 'available', 'completed' and 'deleted'
-		"""
-		payload = {}
-		if include != False:
-			payload['include[]'] = include
-		if state != False:
+		if state != None:
 			payload['state[]'] = state
-		return self.get('/courses', payload=payload)
+		if account_id != None:
+			return self.get('/accounts/%s/courses' % account_id, payload=payload)
+		elif course_id != None:
+			return self.get('/courses/%s' % course_id, single=True, payload=payload)
+		else:
+			return self.get('/courses', payload=payload)
 
-	def get_account_courses(self, account_id, include=False, state=False):
-		"""
-		Obtain list of courses for a specific account or sub-account.
+	def update_course(self, course_id, parameter, value):
+		"""Update course details for a specific course. See online documentation for allowed parameters."""
+		payload = {'course[%s]' % parameter: value}
+		return self.put('/courses/%s' % course_id, payload=payload)
 		
-		include is an optional list of strings which can include values such as:
-		'term', 'teachers', 'needs_grading_count', etc.
-		in order to obtain more information from the course
-		
-		state is an optional list of strings which can be used to request only courses that match the requested state such as:
-		'ubpublished', 'available', 'completed' and 'deleted'
-		"""
+	def conclude_course(self, course_id):
+		"""Conclude a course."""
+		payload = {'event':'conclude'}
+		return self.delete('/courses/%s' % course_id, payload=payload)
+
+	def delete_course(self, course_id):
+		"""Conclude a course."""
+		payload = {'event':'delete'}
+		return self.delete('/courses/%s' % course_id, payload=payload)
+
+	def upload_course_file(self, course_id, file_name, file_path='/'):
+		"""Upload file to course files."""
 		payload = {}
-		if include != False:
-			payload['include[]'] = include
-		if state != False:
-			payload['state[]'] = state
-		return self.get('/accounts/%s/courses' % account_id, payload=payload)
+		payload['name'] = file_name
+		payload['parent_folder_path'] = file_path
+		pending_object = self.post('/courses/%s/files' % course_id, payload=payload) # Make post request to Canvas to create pending object
+		payload = list(pending_object['upload_params'].items())
+		with open('test.pdf', 'rb') as f:
+			file_content = f.read() # Add file content to payload returned by previous post request
+		payload.append((u'file', file_content))
+		return self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
 
+
+
+
+
+
+	# ASSIGNMENT-RELATED FUNCTIONS
 	def get_assignments(self, course_id):
 		"""Obtain assignments in a specific course."""
 		return self.get('/courses/%s/assignments' % course_id)
 
-	def get_users(self, course_id):
-		"""Obtain users in a specific course."""
-		return self.get('/courses/%s/users' % course_id)
-
-	def get_user_activity_summary(self):
-		"""Obtain summary of users activity - Sam"""
-		return self.get('/users/self/activity_stream/summary')
-
-	def get_user_submission_details(self, course_id, assignment_id):
-		"""Obtain details about a user submissions - Sam"""
-		"""This function currently doesn't work as running it does not retrieve information"""
-		return self.get('/courses/%s/assignments/%s/submissions' % (course_id, assignment_id))
+	def get_assignment_submissions(self,course_id, assignment_ids='', user_ids='all', grouped=True):
+		"""
+		Returns details of assignment submissions in a particular course.
+		  - Assignment_ids can be left blank, or changed to be a string (or list of strings) to obtain submissions to particular assignments
+		  - User_ids can be left as 'all', or changed to be a string (or a list of strings) to obtain submissions for specific students
+		  - The grouped flag returns submissions grouped by user_id if true
+		"""
+		payload = {}
+		payload['student_ids[]'] = user_ids # by default ('all'), this returns all submissions for all students
+		payload['assignment_ids[]'] = assignment_ids # by default (if blank), this returns submissions for all assignments
+		payload['grouped'] = grouped # this groups all submissions by user, if true
+		return self.get('/courses/%s/students/submissions' % course_id, payload=payload)
 
 	def get_quiz_submissions(self, course_id, quiz_id):
 		"""Obtain submissions of a quiz."""
 		return self.get('/courses/%s/quizzes/%s/submissions' % (course_id, quiz_id))
-
-	def get_assignment_submissions(self, course_id, assignment_id, grouped=False):
-		"""Need to figure out what this function does..."""
-		payload = {'grouped': grouped}
-		submissions = self.get('/courses/%s/assignments/%s/submissions' % (course_id, assignment_id), payload=payload)        
-		return filter(lambda sub: sub['workflow_state'] != 'unsubmitted', submissions)
-
+	
 	def grade_assignment_submission(self, course_id, assignment_id, user_id, grade, comment=None):
 		"""Grade assignment submission and add comments if necessary."""
 		payload = {'grade_data[%s][posted_grade]' % user_id: grade}
@@ -178,18 +214,6 @@ class CanvasAPI():
 		"""Add comment to assignment submission."""
 		payload = {'grade_data[%s][text_comment]' % user_id: comment}
 		return self.post('/courses/%s/assignments/%s/submissions/update_grades' % (course_id, assignment_id), payload=payload)            
-
-	def set_group_name(self, group_id, name):
-		"""Set name of a group."""
-		payload = {'name': name}
-		return self.put('/groups/%s' % (group_id), payload=payload)            
-
-	def set_group_membership(self, group_set_builder):
-		results = []
-		for group_id, membership in group_set_builder.groups.iteritems():            
-			payload = {}
-			payload['members[]'] = membership
-			self.put('/groups/%s' % (group_id), payload=payload)
 
 	def get_submission_attachments(self, submission, as_bytes=False):
 		"""
@@ -208,26 +232,7 @@ class CanvasAPI():
 					attachments[attachment['filename']] = r.text
 		return attachments
 
-	def update_course(self, course_id, parameter, value):
-		"""Update course details for a specific course. See online documentation for allowed parameters."""
-		payload = {'course[%s]' % parameter: value}
-		return self.put('/courses/%s' % course_id, payload=payload)
-		
-	def conclude_course(self, course_id):
-		"""Conclude a course."""
-		payload = {'event':'conclude'}
-		return self.delete('/courses/%s' % course_id, payload=payload)
+
 	
-	def upload_course_file(self, course_id, file_name, file_path='/'):
-		"""Upload file to course files."""
-		payload = {}
-		payload['name'] = file_name
-		payload['parent_folder_path'] = file_path
-		pending_object = self.post('/courses/%s/files' % course_id, payload=payload) # Make post request to Canvas to create pending object
-		payload = list(pending_object['upload_params'].items())
-		with open('test.pdf', 'rb') as f:
-			file_content = f.read() # Add file content to payload returned by previous post request
-		payload.append((u'file', file_content))
-		return self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
 
 		
