@@ -87,3 +87,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Excel files, csv files
+.xls
+.xlsx
+.csv
