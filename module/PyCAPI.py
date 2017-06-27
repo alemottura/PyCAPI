@@ -50,7 +50,7 @@ class CanvasAPI():
 			r = r.json()
 		return r # return result of request
 
-	def get(self, api, to_json=True, payload=None, single=False):
+	def get(self, api, to_json=True, payload=None, single=False, first_page_only=False):
 		url = self.api_url + api # compose url for the initial get request
 		responses = [] # prepare list to collate responses
 		while True: # enter infinite loop
@@ -62,6 +62,8 @@ class CanvasAPI():
 			if 'next' in r.links: # if the result shows there is more data to obtain
 				url = r.links['next']['url'] # obtain url for the next chunk of data, and start at the top of while loop
 			else: # if there is no more data to obtain, then break the infinite loop
+				break
+			if first_page_only:
 				break
 		if to_json: # if response is in json format, process it accordingly
 			responses = [r.json() for r in responses]
@@ -125,7 +127,7 @@ class CanvasAPI():
 	
 
 	# COURSE-RELATED FUNCTIONS
-	def get_courses(self, course_id=None, account_id=None, include=None, state=None):
+	def get_courses(self, course_id=None, user_id=None, account_id=None, include=None, state=None):
 		"""
 		Obtain course details.
 		  - If course_id is set, then this returns details for the requested course
@@ -146,6 +148,8 @@ class CanvasAPI():
 			return self.get('/accounts/%s/courses' % account_id, payload=payload)
 		elif course_id != None:
 			return self.get('/courses/%s' % course_id, single=True, payload=payload)
+		elif user_id != None:
+			return self.get('users/%s/courses' % user_id, payload=payload)
 		else:
 			return self.get('/courses', payload=payload)
 
