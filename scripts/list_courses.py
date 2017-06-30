@@ -1,4 +1,3 @@
-#!/usr/bin/python
 
 # This script lists all courses in a Canvas account, and published/unpublished assignments within each
 
