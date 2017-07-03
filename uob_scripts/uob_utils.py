@@ -73,9 +73,9 @@ class MailAPI():
 
 class EMailMessage(MIMEMultipart):
 	""""""
-	def __init__(self, from_addr, to_addr, subj):
+	def __init__(self, to_addr, subj):
 		MIMEMultipart.__init__(self)
-		self['From'] = from_addr
+		self['From'] = self.from_addr
 		self['To'] = to_addr
 		self['Date'] = formatdate(localtime=True)
 		self['Subject'] = subj
