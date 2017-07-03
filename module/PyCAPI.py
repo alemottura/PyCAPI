@@ -175,7 +175,7 @@ class CanvasAPI():
 		payload['parent_folder_path'] = file_path
 		pending_object = self.post('/courses/%s/files' % course_id, payload=payload) # Make post request to Canvas to create pending object
 		payload = list(pending_object['upload_params'].items())
-		with open('test.pdf', 'rb') as f:
+		with open(file_name, 'rb') as f:
 			file_content = f.read() # Add file content to payload returned by previous post request
 		payload.append((u'file', file_content))
 		return self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
@@ -236,6 +236,14 @@ class CanvasAPI():
 					attachments[attachment['filename']] = r.text
 		return attachments
 
+	def upload_file_to_assignment(self, course_id, assignment_id, user_id, file_name):
+		"""Upload file to assignment. This only works if you are Admin."""
+		pending_object = self.post('/courses/%s/assignments/%s/submissions/%s/files?as_user_id=%s' % (course_id, assignment_id, user_id, user_id)) # Make post request to Canvas to create pending object
+		payload = list(pending_object['upload_params'].items())
+		with open(filename, 'rb') as f:
+			file_content = f.read() # Add file content to payload returned by previous post request
+		payload.append((u'file', file_content))
+		return self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
 
 	
 
