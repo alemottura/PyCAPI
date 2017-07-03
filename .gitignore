@@ -89,6 +89,6 @@ ENV/
 .ropeproject
 
 # Excel files, csv files
-.xls
-.xlsx
-.csv
+*.xls
+*.xlsx
+*.csv
