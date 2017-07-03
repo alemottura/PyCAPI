@@ -182,6 +182,10 @@ class CanvasAPI():
 
 
 	# ASSIGNMENT-RELATED FUNCTIONS
+	def get_assignment(self, course_id, assignment_ids):
+		"""Obtain a specific assignment in a specific course."""
+		return self.get('/courses/%s/assignments/%s' % (course_id, assignment_ids), single=True)
+	
 	def get_assignments(self, course_id):
 		"""Obtain assignments in a specific course."""
 		return self.get('/courses/%s/assignments' % course_id)
