@@ -1,7 +1,41 @@
-from openpyxl import load_workbook
+#       
+#       GRS_monitoring.py
+#
+#       The purpose of this script is to notify relevant personel about
+#       a student and supervisors completion of monthly GRS forms
+#       during post-graduate (PG) studies.
+#       This is based on the monthly assignments made on Canvas for the
+#       student to upload their completed GRS form to.
+#
+#	This script reads an Excel file of four columns:
+#		student_name, student_login_id, tutor_name, tutor_login_id
+#       and loops through every student on that list. While looping through every
+#	student in the Excel file.      
+#
+#       Things that need to be set:
+#
+#       course_id - the Canvas course on which GRS assignments are put
+#course_id = '7054'
+course_id = '24191'
+#
+#       PG_email - the email for the Head of PG studies
+#PG_email =
+#
+#       school_email - the email for the Head of School
+#school_email = 
+#
+#	NOTE: this script sends email using the class defined in
+#	PyCAPI/uob_scripts/uob_utils.py
+#	If you wish to use the script, you need to check that you set up email
+#	appropriately.
+#
+#
+#
 import sys
 sys.path.append("../module/") # First two lines are needed for import of PyCAPI
 import PyCAPI
+import uob_utils
+from openpyxl import load_workbook
 import datetime
 import math
 import json
@@ -10,13 +44,38 @@ import smtplib
 from email.mime.text import MIMEText
 import calendar
 
+capi = PyCAPI.CanvasAPI()
+mail = uob_utils.MailAPI()
+todaydate = datetime.date.today()
 
-#course_id = '7054'
-course_id = '24191'
 
-wb = load_workbook('GRS_monitoring_sheet.xlsx')
-ws = wb['Sheet1']
 
+
+###############################################################################
+# Converts datetime strings to unicode when sending to Canvas
+#
+def datetime2unicode(datetimevar):
+    datetimevar = list(str(datetimevar))
+    datetimevar[10] = 'T'
+    datetimevar.append('Z')
+    datetimevar = unicode(''.join(datetimevar))
+    return datetimevar
+
+
+
+
+###############################################################################
+# Only continue with script if it is term time
+#
+if uob_utils.TermWeek(todaydate)[0] == 0:
+	exit
+
+
+
+
+###############################################################################
+# Calculate the current working day
+#
 """
 currenttime = datetime.date.today()
 currentday = currenttime.day # returns day date integer
@@ -34,12 +93,18 @@ print 'Working days since start of month: ' + str(workingdays)
 """
 
 # I think this now works - so I pasted it in instead of the above
-todaydate = datetime.date.today()
 firstdate = todaydate.replace(day=1)
 workingday = ((todaydate.day - max(5 - firstdate.weekday(),0) - min(todaydate.weekday()+1,5))/7)*5 + max(5 - firstdate.weekday(),0) + min(todaydate.weekday()+1,5)
 print 'Current business day of the month: ' + str(workingday)
 
+
+
+
+###############################################################################
+# Obtain student details from Excel document
 # I do not understand why you need to have two separate lists. I would opt for a list of dictionaries:
+wb = load_workbook('GRS_monitoring_sheet.xlsx')
+ws = wb['Sheet1']
 students = []
 i = 2
 while ws['A'+str(i)].value != None:
@@ -49,15 +114,25 @@ while ws['A'+str(i)].value != None:
     i += 1   
 #print json.dumps(students, indent=2)
 
-capi = PyCAPI.CanvasAPI()
+
+
+
+
+###############################################################################
+# Obtain further student details from Canvas
+#
 for student in students:
     student['canvas_id'] = capi.get_user('sis_login_id:'+str(student['id']))['id']
     student['email'] = capi.get_user('sis_login_id:'+str(student['id']))['primary_email']
     student['supervisor_email'] = capi.get_user('sis_login_id:'+str(student['supervisor_id']))['primary_email']
 #print json.dumps(students, indent=2)
 
-# I think at this point you want to see whether each student has a submission to the current assignment and whether it was marked complete...
 
+
+
+###############################################################################
+# Get completion details of the current months GRS assignment
+#
 # First we need to find the current assignment:
 """
 payload = {}
@@ -92,7 +167,6 @@ for student in students:
 print json.dumps(students, indent=2)
 """
 
-
 # Using deadlines to get current assignment
 assignments = capi.get_assignments(course_id)
 for assignment in assignments:
@@ -119,6 +193,10 @@ for student in students:
     else:
         student['complete'] = False
 
+
+###############################################################################
+# Getting recipients of emails based on GRS assignment completion and working day
+#
 """
 # Sending emails based on assignment completion
 # Obtain SMTP username and password, and other email details. Connect to server.
@@ -141,8 +219,6 @@ except:
 
 # Sending emails based on GRS assignment completion
 recipients = []
-#PG_email = # Enter Head of PG studies email here
-#school_email = # Enter Head of School email here
 for student in students:
     # If file has not been uploaded and complete mark is missing
     if student['form'] == False and student['complete'] == False:
@@ -179,7 +255,14 @@ for student in students:
     else:
         print 'No reminder emails need to be sent'
 
-# If it is the 10th of the month or past the 10th of the month, send summary email
+
+
+
+
+###############################################################################
+# Sending summary emails
+#
+# If it is the 10th of the month or past the 10th of the month
 if workingday == 10:
     print 'Send summary email'
     recipients.append(PG_email)
@@ -200,24 +283,38 @@ except:
     print 'Email unable to send'
 """
 
-workingday = 20
-next_assignment = False
+
+
+
+###############################################################################
+# Creating an assignment for the next month if there is currently none
+#
 # Check whether an assignment is present for the following month
 if workingday == 20 and next_assignment == False: # New assignment needed for next month
+    print 'New assignment for next month needed'
     current_assignment = capi.get_assignment(course_id, assignment_id)
-    print current_assignment
-    payload = {}
-    #payload['assignment[name]'] = calendar.month_name[datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').month+1]
-    #payload['submission_types'] = 'online_upload'
-    #payload['points_possible'] = 0.0
-    #payload['grading_type'] = 'pass_fail'
-    #payload['unlock_at'] =
-    #payload['lock_at'] = 
-    #payload['due_at'] =
+    payload = {} # Create payload which contains new assignment information
     for key in current_assignment:
-        payload['assignment['+key+']'] = current_assignment[key]
-    print json.dumps(payload, indent=2)
-    #capi.post('/courses/%s/assignments' % course_id, payload=payload)
-
-
-
+        if key in ('submission_types', 'allowed_extensions', 'turnitin_enabled', 'vericite_enabled', 'vericite_enabled', 'integration_data', 'integration_id', 'peer_reviews', 'automatic_peer_reviews', 'notify_of_update', 'group_category_id', 'grade_group_students_individually', 'external_tool_tag_attributes', 'points_possible', 'grading_type', 'muted', 'assignment_overrides', 'only_visible_to_overrides', 'published', 'grading_standard_id', 'omit_from_final_grade', 'quiz_lti', 'assignment_group_id'):
+            payload['assignment['+key+']'] = current_assignment[key]
+    if datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').month == 12:
+        nextmonthnum = 1
+        nextmonthyear = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').year+1
+    else:
+        nextmonthnum = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').month+1
+        nextmonthyear = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').year
+    payload['assignment[name]'] = calendar.month_name[nextmonthnum]
+    payload['assignment[position]'] = current_assignment['position']+1
+    unlock_at = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').replace(year=nextmonthyear).replace(month=nextmonthnum).replace(day=1)
+    payload['assignment[unlock_at]'] = datetime2unicode(unlock_at)
+    if 1<=unlock_at.day<=5:
+        deadlinedate = 28
+    elif unlock_at.day == 0:
+        deadlinedate = 26
+    elif unlock_at.day == 6:
+        deadlinedate = 27
+    payload['assignment[due_at]'] = datetime2unicode(unlock_at.replace(day=deadlinedate))
+    payload['assignment[lock_at]'] = datetime2unicode(unlock_at.replace(day=calendar.monthrange(nextmonthyear,nextmonthnum)[1]))
+    payload['assignment[description]'] = 'This is '+payload['assignment[name]']+'\'s GRS form assignment'
+    capi.post('/courses/%s/assignments' % course_id, payload=payload)
+    print 'New assignment for next month created'
