@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #       
 #       GRS_monitoring.py
 #
@@ -37,12 +36,6 @@ sys.path.append("../module/") # First two lines are needed for import of PyCAPI
 import PyCAPI
 import uob_utils
 from openpyxl import load_workbook
-=======
-from openpyxl import load_workbook
-import sys
-sys.path.append("../module/") # First two lines are needed for import of PyCAPI
-import PyCAPI
->>>>>>> origin/PyCAPI_Updates_Sam
 import datetime
 import math
 import json
@@ -51,7 +44,7 @@ import smtplib
 from email.mime.text import MIMEText
 import calendar
 
-<<<<<<< HEAD
+
 capi = PyCAPI.CanvasAPI()
 mail = uob_utils.MailAPI()
 todaydate = datetime.date.today()
@@ -84,62 +77,27 @@ if uob_utils.TermWeek(todaydate)[0] == 0:
 ###############################################################################
 # Calculate the current working day
 #
-=======
-
-#course_id = '7054'
-course_id = '24191'
-
-wb = load_workbook('GRS_monitoring_sheet.xlsx')
-ws = wb['Sheet1']
-
->>>>>>> origin/PyCAPI_Updates_Sam
-"""
-currenttime = datetime.date.today()
-currentday = currenttime.day # returns day date integer
-currentweekday = datetime.date.weekday(currenttime) # returns weekday as integer, 0 being Monday, 1 being Tuesday etc.
-monthfirst = currenttime.replace(day = 1) # gets datetime of first day of current month
-monthfirstweekday = datetime.date.weekday(monthfirst) # gets weekday as integer of first day of month
-
-if currentweekday-monthfirstweekday >= -1: # ie. start of month = Thu and current = Wed/start of month = Wed and current = Fri
-    workingdays = (math.floor(currentday/7)*5) + (currentday%7)
-elif monthfirstweekday == 6: # accounts for extra day of Sunday given in original calculation
-    workingdays = ((math.floor(currentday/7)*5) + (currentday%7)) - 1
-else: # ie. start of month = Thu and current = Mon/start of month = Sat and current = Tue
-    workingdays = ((math.floor(currentday/7)*5) + (currentday%7)) - 2
-print 'Working days since start of month: ' + str(workingdays)
-"""
-
-# I think this now works - so I pasted it in instead of the above
-<<<<<<< HEAD
-=======
-todaydate = datetime.date.today()
->>>>>>> origin/PyCAPI_Updates_Sam
 firstdate = todaydate.replace(day=1)
 workingday = ((todaydate.day - max(5 - firstdate.weekday(),0) - min(todaydate.weekday()+1,5))/7)*5 + max(5 - firstdate.weekday(),0) + min(todaydate.weekday()+1,5)
 print 'Current business day of the month: ' + str(workingday)
 
-<<<<<<< HEAD
 
 
 
 ###############################################################################
 # Obtain student details from Excel document
-# I do not understand why you need to have two separate lists. I would opt for a list of dictionaries:
+#
 wb = load_workbook('GRS_monitoring_sheet.xlsx')
 ws = wb['Sheet1']
-=======
-# I do not understand why you need to have two separate lists. I would opt for a list of dictionaries:
->>>>>>> origin/PyCAPI_Updates_Sam
 students = []
 i = 2
 while ws['A'+str(i)].value != None:
     students.append({'name':ws['A'+str(i)].value, 'id':ws['B'+str(i)].value, 'supervisor_name':ws['C'+str(i)].value, 'supervisor_id':ws['D'+str(i)].value, 'skip': False})
-    if ws['E'+str(i)].value != None: # I would not ask for zeros and ones - just check if cell contains something
+    if ws['E'+str(i)].value != None:
         students[-1]['skip'] == True
     i += 1   
 #print json.dumps(students, indent=2)
 
-<<<<<<< HEAD
 
 
 
@@ -147,26 +105,45 @@ while ws['A'+str(i)].value != None:
 ###############################################################################
 # Obtain further student details from Canvas
 #
-=======
-capi = PyCAPI.CanvasAPI()
->>>>>>> origin/PyCAPI_Updates_Sam
 for student in students:
     student['canvas_id'] = capi.get_user('sis_login_id:'+str(student['id']))['id']
     student['email'] = capi.get_user('sis_login_id:'+str(student['id']))['primary_email']
     student['supervisor_email'] = capi.get_user('sis_login_id:'+str(student['supervisor_id']))['primary_email']
 #print json.dumps(students, indent=2)
 
-<<<<<<< HEAD
+
+
+
+###############################################################################
+# Enroll all students and supervisors not already enrolled on GRS course
+#
+enrollments = capi.get('/courses/%s/enrollments' % course_id)
+enrolled = []
+for enrollment in enrollments:
+    enrolled.append(enrollment['user']['sis_login_id'])
+print enrolled
+for student in students:
+    if not student['id'] in enrolled:
+        payload = {}
+        payload['enrollment[user_id]'] = student['canvas_id']
+        payload['enrollment[type]'] = 'StudentEnrollment'
+        payload['enrollment[enrollment_state]'] = 'active'
+        capi.post('/courses/%s/enrollments' % course_id, payload=payload)
+        print student['name'] + ' enrolled in course as student'
+    if not student['supervisor_id'] in enrolled:
+        payload = {}
+        payload['enrollment[user_id]'] = 'sis_login_id:'+str(student['supervisor_id'])
+        payload['enrollment[type]'] = 'TeacherEnrollment'
+        payload['enrollment[enrollment_state]'] = 'active'
+        capi.post('/courses/%s/enrollments' % course_id, payload=payload)
+        print student['supervisor_name'] + ' enrolled in course as teacher'
+
 
 
 
 ###############################################################################
 # Get completion details of the current months GRS assignment
 #
-=======
-# I think at this point you want to see whether each student has a submission to the current assignment and whether it was marked complete...
-
->>>>>>> origin/PyCAPI_Updates_Sam
 # First we need to find the current assignment:
 """
 payload = {}
@@ -201,10 +178,6 @@ for student in students:
 print json.dumps(students, indent=2)
 """
 
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/PyCAPI_Updates_Sam
 # Using deadlines to get current assignment
 assignments = capi.get_assignments(course_id)
 for assignment in assignments:
@@ -215,14 +188,14 @@ for assignment in assignments:
         next_assignment = True
 
 for student in students:
-    # Step 1...download details of submission for the user
+    # Download details of submission for the user
     submission = capi.get_assignment_submissions(course_id, assignment_ids=assignment_id, user_ids=student['canvas_id'], grouped=False)
-    # Step 2...check whether form has been uploaded
+    # Check whether form has been uploaded
     if 'attachments' in submission[0]['submissions'][0]:
         student['form'] = True
     else:
         student['form'] = False
-    # Step 3...check whether submission has been marked as complete
+    # Check whether submission has been marked as complete
     if 'grade' in submission[0]['submissions'][0]:
         if submission[0]['submissions'][0]['grade'] == 'complete':
             student['complete'] = True
@@ -231,43 +204,19 @@ for student in students:
     else:
         student['complete'] = False
 
-<<<<<<< HEAD
 
 ###############################################################################
 # Getting recipients of emails based on GRS assignment completion and working day
 #
-=======
->>>>>>> origin/PyCAPI_Updates_Sam
-"""
-# Sending emails based on assignment completion
-# Obtain SMTP username and password, and other email details. Connect to server.
-if not os.path.isfile(os.path.expanduser('~/.mailcredentials')):
-    raise RuntimeError('Make sure ~/.mailcredentials exists in home directory.')
-if int(oct(os.stat(os.path.expanduser('~/.mailcredentials')).st_mode)[-3:]) > 600:
-    raise RuntimeError('Permissions of ~/.mailcredentials are not secure enough.')
-with open(os.path.expanduser('~/.mailcredentials')) as f:
-    lines = f.readlines()
-username = lines[0].strip()
-password = lines[1].strip()
-try:
-    server_ssl = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    server_ssl.ehlo()
-    server_ssl.login(username, password)
-    #server_ssl.set_debuglevel(1) # When set to true (1) will print debug messages for connection
-except:
-    raise RuntimeError('Could not connect to GMAIL server.')
-"""
-
-# Sending emails based on GRS assignment completion
 recipients = []
-<<<<<<< HEAD
-=======
-#PG_email = # Enter Head of PG studies email here
-#school_email = # Enter Head of School email here
->>>>>>> origin/PyCAPI_Updates_Sam
 for student in students:
+    # If it is marked as complete, but file is not uploaded, mark as incomplete
+    if student['form'] == False and student['complete'] == True:
+        print 'Mark as incomplete'
+        student['complete'] = False
+        # Functionality needed that will set assignment to uncomplete
     # If file has not been uploaded and complete mark is missing
-    if student['form'] == False and student['complete'] == False:
+    elif student['form'] == False and student['complete'] == False:
         if workingday in (1,10,15):
             print 'Email student'
             recipients.append(student['email'])
@@ -295,29 +244,51 @@ for student in students:
             recipients.extend((student['supervisor_email'], PG_email, school_email))
         else:
             print 'No reminder emails need to be sent'
-    # If it is marked as complete, but file is not uploaded, unmark as complete
-    elif student['form'] == False and student['complete'] == True:
-        print 'Mark as incomplete'
     else:
         print 'No reminder emails need to be sent'
 
-<<<<<<< HEAD
 
 
 
 
 ###############################################################################
-# Sending summary emails
+# Getting recipients of summary emails
 #
 # If it is the 10th of the month or past the 10th of the month
-=======
-# If it is the 10th of the month or past the 10th of the month, send summary email
->>>>>>> origin/PyCAPI_Updates_Sam
 if workingday == 10:
     print 'Send summary email'
     recipients.append(PG_email)
     msg = MIMEText('Enter email text here')
 
+
+
+
+###############################################################################
+# Sending emails based on recipients
+#
+# This needs to be replaced by uob_utils.MailAPI()
+# Establishing email connection
+"""
+# Sending emails based on assignment completion
+# Obtain SMTP username and password, and other email details. Connect to server.
+if not os.path.isfile(os.path.expanduser('~/.mailcredentials')):
+    raise RuntimeError('Make sure ~/.mailcredentials exists in home directory.')
+if int(oct(os.stat(os.path.expanduser('~/.mailcredentials')).st_mode)[-3:]) > 600:
+    raise RuntimeError('Permissions of ~/.mailcredentials are not secure enough.')
+with open(os.path.expanduser('~/.mailcredentials')) as f:
+    lines = f.readlines()
+username = lines[0].strip()
+password = lines[1].strip()
+try:
+    server_ssl = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server_ssl.ehlo()
+    server_ssl.login(username, password)
+    #server_ssl.set_debuglevel(1) # When set to true (1) will print debug messages for connection
+except:
+    raise RuntimeError('Could not connect to GMAIL server.')
+"""
+
+# Sending emails based on recipients
 """
 comma_space = ', '
 msg = MIMEText('Insert email text here')
@@ -333,7 +304,6 @@ except:
     print 'Email unable to send'
 """
 
-<<<<<<< HEAD
 
 
 
@@ -369,26 +339,3 @@ if workingday == 20 and next_assignment == False: # New assignment needed for ne
     payload['assignment[description]'] = 'This is '+payload['assignment[name]']+'\'s GRS form assignment'
     capi.post('/courses/%s/assignments' % course_id, payload=payload)
     print 'New assignment for next month created'
-=======
-workingday = 20
-next_assignment = False
-# Check whether an assignment is present for the following month
-if workingday == 20 and next_assignment == False: # New assignment needed for next month
-    current_assignment = capi.get_assignment(course_id, assignment_id)
-    print current_assignment
-    payload = {}
-    #payload['assignment[name]'] = calendar.month_name[datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').month+1]
-    #payload['submission_types'] = 'online_upload'
-    #payload['points_possible'] = 0.0
-    #payload['grading_type'] = 'pass_fail'
-    #payload['unlock_at'] =
-    #payload['lock_at'] = 
-    #payload['due_at'] =
-    for key in current_assignment:
-        payload['assignment['+key+']'] = current_assignment[key]
-    print json.dumps(payload, indent=2)
-    #capi.post('/courses/%s/assignments' % course_id, payload=payload)
-
-
-
->>>>>>> origin/PyCAPI_Updates_Sam
