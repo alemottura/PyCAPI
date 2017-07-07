@@ -101,7 +101,6 @@ while ws['A'+str(i)].value != None:
 
 
 
-
 ###############################################################################
 # Obtain further student details from Canvas
 #
