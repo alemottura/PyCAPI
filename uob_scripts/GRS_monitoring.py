@@ -204,6 +204,8 @@ for student in students:
         student['complete'] = False
 
 
+
+
 ###############################################################################
 # Getting recipients of emails based on GRS assignment completion and working day
 #
