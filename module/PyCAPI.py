@@ -251,4 +251,9 @@ class CanvasAPI():
 
 	
 
-		
+def datetime2unicode(datetimevar):
+	datetimevar = list(str(datetimevar))
+	datetimevar[10] = 'T'
+	datetimevar.append('Z')
+	datetimevar = unicode(''.join(datetimevar))
+	return datetimevar
