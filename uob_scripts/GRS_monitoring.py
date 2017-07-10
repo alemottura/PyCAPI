@@ -18,7 +18,6 @@
 #
 #	course_id - the Canvas course on which GRS assignments are put
 course_id = '7054'
-#course_id = '24191'
 #
 #	form_submission_reminder_dates - dates for form submission reminders
 form_submission_reminder_dates = [
