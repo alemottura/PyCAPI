@@ -77,8 +77,11 @@ if uob_utils.TermWeek(today)[0] == 0:
 	exit
 
 
-
-
+###############################################################################
+# Only continue if today is a week day
+#
+if today.weekday() > 4:
+	exit
 
 
 
@@ -94,7 +97,7 @@ except:
 students = []
 i = 2
 while ws['A'+str(i)].value != None:
-    students.append({'name':ws['A'+str(i)].value, 'id':ws['B'+str(i)].value, 'tutor_name':ws['C'+str(i)].value, 'tutor_id':ws['D'+str(i)].value})
+    students.append({'name':ws['A'+str(i)].value, 'id':ws['B'+str(i)].value, 'year':ws['C'+str(i)].value, 'tutor_name':ws['D'+str(i)].value, 'tutor_id':ws['E'+str(i)].value})
     i = i + 1
 # Sort the list by tutor_id
 students = sorted(students, key=lambda k: "%s %s" % (k['tutor_id'], k['id']))
@@ -209,7 +212,8 @@ for student in students:
 		msg = uob_utils.EMailMessage(current_tutor_name +' <'+ current_tutor_id + '@adf.bham.ac.uk>', 'Tutees Weekly Summary')
 		msg.body('Hi,\n\nThis is the weekly summary of progress for your tutees on Canvas.\n\nBest Regards,\nMet&Mat UG Office\n\n')
 		msg.attach_file(output_dir+current_tutor_id+'.xlsx') # attach workbook
-		#mail.send('Met&Mat UG Management <alemottura@gmail.com>', current_tutor_id + '@adf.bham.ac.uk', msg) # send email
+		if today.weekday() == 0: # only send email if it is a Monday...
+			mail.send(current_tutor_id + '@adf.bham.ac.uk', msg) # send email
 		wb = Workbook() # Create a new workbook
 		wb.remove_sheet(wb.active) # Remove the active sheet
 		current_tutor_id = student['tutor_id'] # Store the current tutor_id so you can check when it changes
@@ -269,7 +273,8 @@ wb.save(filename=output_dir+current_tutor_id+'.xlsx') # save workbook
 msg = uob_utils.EMailMessage(current_tutor_name +' <'+ current_tutor_id + '@adf.bham.ac.uk>', 'Tutees Weekly Summary')
 msg.body('Hi,\n\nThis is the weekly summary of progress for your tutees on Canvas.\n\nBest Regards,\nMet&Mat UG Office\n\n')
 msg.attach_file(output_dir+current_tutor_id+'.xlsx') # attach workbook
-#mail.send('Met&Mat UG Management <alemottura@gmail.com>', current_tutor_id + '@adf.bham.ac.uk', msg) # send email
+if today.weekday() == 0: # only send email if it is a Monday...
+	mail.send(current_tutor_id + '@adf.bham.ac.uk', msg) # send email
 
 
 
