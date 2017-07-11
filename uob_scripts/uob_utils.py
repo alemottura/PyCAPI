@@ -21,11 +21,12 @@
 #	Things that need to be set:
 #
 #	smtp server and login credentials
-smtp_server = 'auth-smtp.bham.ac.uk' # smtp server
+smtp_server = 'mail.mottura.org' # smtp server
 smtp_port = 465 # port number (ssl only, no insecure connections)
 smtp_username = None # username (if this is left as None, make sure you set up ~/.mailcredentials)
 smtp_password = None # password (if this is left as None, make sure you set up ~/.mailcredentials)
-smtp_from_addr = 'materials-admissions@contacts.bham.ac.uk' # From address for all emails
+smtp_from_name = 'MetMat Canvas Bot' # Display name of sender
+smtp_from_addr = 'canvasbots-noreply@mottura.org' # From address for all emails
 #
 #	SMTP server authentication is normally done using a username and a password.
 #	If you do not wish to write you username and password above, you can write
@@ -51,6 +52,10 @@ from email.utils import formatdate
 class MailAPI():
 	""""""
 	def __init__(self, username=smtp_username, password=smtp_password, server=smtp_server, port=smtp_port, path_to_credentials='~/.mailcredentials'):
+		self.username = username
+		self.password = password
+		self.server = server
+		self.port = port
 		if username == None or password==None: # if username and password are not specified, look for .mailcredentials file
 			if not os.path.isfile(os.path.expanduser(path_to_credentials)):
 				raise RuntimeError('Provide a username and password in ~/.mailcredentials or as an argument of the call.')
@@ -58,24 +63,32 @@ class MailAPI():
 				raise RuntimeError('Permissions of mail credentials are not secure enough.')
 			with open(os.path.expanduser(path_to_credentials)) as f: # read Canvas token from .canvastoken file
 				lines = f.readlines()
-			username = lines[0].strip()
-			password = lines[1].strip()
+			self.username = lines[0].strip()
+			self.password = lines[1].strip()
 		try:
-			self.ssl = smtplib.SMTP_SSL(server, port)
+			self.ssl = smtplib.SMTP_SSL(self.server, self.port)
 			self.ssl.ehlo()
-			self.ssl.login(username, password)	
+			self.ssl.login(self.username, self.password)	
 		except:
 			raise RuntimeError('Could not connect to e-mail server.')
 		
 	def send(self, to_addr, msg):
-		return self.ssl.sendmail(smtp_from_addr, to_addr, msg.as_string())
+		try: # tries to send email....
+			return self.ssl.sendmail(smtp_from_addr, to_addr, msg.as_string())
+		except smtplib.SMTPServerDisconnected: # ...if server is disconnected, tries to reconnect and then sends email...
+			self.ssl = smtplib.SMTP_SSL(self.server, self.port)
+			self.ssl.ehlo()
+			self.ssl.login(self.username, self.password)
+			return self.ssl.sendmail(smtp_from_addr, to_addr, msg.as_string())
+
+
 
 
 class EMailMessage(MIMEMultipart):
 	""""""
 	def __init__(self, to_addr, subj, cc_addr=None):
 		MIMEMultipart.__init__(self)
-		self['From'] = smtp_from_addr
+		self['From'] = '"' + smtp_from_name + '" <' + smtp_from_addr + '>'
 		self['To'] = to_addr
 		if not cc_addr==None:
 			self['Cc'] = cc_addr
