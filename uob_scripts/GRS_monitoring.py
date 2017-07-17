@@ -34,6 +34,9 @@ mark_complete_reminder_dates = [
 	[30, 32] # second escalation emails
 ]
 #
+#	summary_email_dates - dates for summary email
+summary_email_dates = [10, 16, 18, 20]
+#
 #	first_escalation_emails - set of emails for first escalation
 first_escalation_emails = ['a.mottura@bham.ac.uk']
 #
@@ -227,7 +230,7 @@ Met&Mat PG Office
 			recipients.append(student['email'])
 			cc_recipients.append(student['supervisor_email'])
 			cc_recipients.extend(first_escalation_emails)
-		elif workingday in form_submission_reminder_dates[2]: # second and final escalation
+		elif workingday in form_submission_reminder_dates[3]: # second and final escalation
 			message_subject = 'ATTENTION REQUIRED: your GRS2 form'
 			message_body = """Hi %s and %s,
 The last working day of the month is approaching quickly, and an official supervision meeting MUST happen soon!
@@ -303,7 +306,7 @@ Met&Mat PG Office
 ###############################################################################
 # Send summary email
 #
-if workingday in [10, 16, 18, 20]:
+if workingday in summary_email_dates:
 	message_subject = 'GRS2 Form Summary'
 	message_body = """Hi,
 Here is the summary of GRS2 form submissions.
