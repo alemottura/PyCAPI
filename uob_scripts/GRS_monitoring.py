@@ -21,21 +21,24 @@ course_id = '7054'
 #
 #	form_submission_reminder_dates - dates for form submission reminders
 form_submission_reminder_dates = [
-	[2, 4, 6, 8], # dates when to email student only
-	[10, 12, 14], # dates when to email student and supervisor
-	[16, 18], # first escalation emails
-	[19, 20] # second escalation emails
+	[8, 14], # dates when to email student only
+	[16, 18], # dates when to email student and supervisor
+	[20], # first escalation emails
+	[30, 32] # second escalation emails
 ]
 #
 #	form_submission_reminder_dates - dates for form submission reminders
 mark_complete_reminder_dates = [
-	[2, 4, 6, 8, 10, 12, 14], # dates when to email supervisor only
-	[16, 18], # first escalation emails
-	[19, 20] # second escalation emails
+	[5, 10, 15, 18], # dates when to email supervisor only
+	[20], # first escalation emails
+	[30, 32] # second escalation emails
 ]
 #
+#	summary_email_dates - dates for summary email
+summary_email_dates = [10, 16, 18, 20]
+#
 #	first_escalation_emails - set of emails for first escalation
-first_escalation_emails = ['metmat-phdmscadmin@contacts.bham.ac.uk']
+first_escalation_emails = ['a.mottura@bham.ac.uk']
 #
 #	second_escalation_emails - set of emails for second escalation
 second_escalation_emails = ['i.hoffman@bham.ac.uk']
@@ -44,7 +47,7 @@ second_escalation_emails = ['i.hoffman@bham.ac.uk']
 PG_office_email = ['metmat-phdmscadmin@contacts.bham.ac.uk']
 #
 #	student_list - path to Excel file containing details of students
-student_list = './GRS_monitoring_sheet.xlsx'
+student_list = '/mnt/metadmin/CANVASBOTS/PG/GRS_Monitoring/Student_List.xlsx'
 #
 #	NOTE: this script sends email using the class defined in
 #	PyCAPI/uob_scripts/uob_utils.py
@@ -227,7 +230,7 @@ Met&Mat PG Office
 			recipients.append(student['email'])
 			cc_recipients.append(student['supervisor_email'])
 			cc_recipients.extend(first_escalation_emails)
-		elif workingday in form_submission_reminder_dates[2]: # second and final escalation
+		elif workingday in form_submission_reminder_dates[3]: # second and final escalation
 			message_subject = 'ATTENTION REQUIRED: your GRS2 form'
 			message_body = """Hi %s and %s,
 The last working day of the month is approaching quickly, and an official supervision meeting MUST happen soon!
@@ -303,25 +306,29 @@ Met&Mat PG Office
 ###############################################################################
 # Send summary email
 #
-if workingday in [16, 18, 20]:
+if workingday in summary_email_dates:
 	message_subject = 'GRS2 Form Summary'
 	message_body = """Hi,
 Here is the summary of GRS2 form submissions.
 	"""
-	message_body.append('\nThese students have not submitted a form yet:\n')
+	
+	message_body += '\nThese students have not submitted a form yet:\n'
 	for student in students:
 		if student['form'] == False and student['complete'] == False:
-			message_body.append('  - %s \n' % student['name'])
-	message_body.append('\nThese students have submitted a form, but it still needs to be marked as complete by the supervisor:\n')
+			message_body += '  - ' + student['name'] + ' \n' 
+	
+	message_body += '\nThese students have submitted a form, but it still needs to be marked as complete by the supervisor:\n'
 	for student in students:
 		if student['form'] == True and student['complete'] == False:
-			message_body.append('  - %s \n' % student['name'])
-	message_body.append('\nThese students have completed the GRS2 form requirements:\n')
+			message_body += '  - ' + student['name'] + ' \n'
+	
+	message_body += '\nThese students have completed the GRS2 form requirements:\n'
 	for student in students:
 		if student['form'] == True and student['complete'] == True:
-			message_body.append('  - %s \n' % student['name'])
-	message_body.append('\n')
-	message_body.append('Bye bye,\nGRS2 form monitoring')
+			message_body += '  - ' + student['name'] + ' \n'
+	
+	message_body += '\n'
+	message_body += 'Bye bye,\nGRS2 form monitoring'
 	msg = uob_utils.EMailMessage(", ".join(PG_office_email), message_subject)
 	msg.body(message_body)
 	mail.send(PG_office_email, msg)
@@ -364,7 +371,7 @@ keylist = [
 	'description'
 ]
 # Check whether an assignment is present for the following month
-if workingday > 20 and next_assignment == False: # New assignment needed for next month
+if workingday > 19 and next_assignment == False: # New assignment needed for next month
 	#print 'New assignment for next month needed'
 	current_assignment = capi.get_assignment(course_id, assignment_id)
 	payload = {} # Create payload which contains new assignment information
