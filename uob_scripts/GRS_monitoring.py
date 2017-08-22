@@ -21,7 +21,7 @@ course_id = '7054'
 #
 #	form_submission_reminder_dates - dates for form submission reminders
 form_submission_reminder_dates = [
-	[8, 14], # dates when to email student only
+	[6, 14], # dates when to email student only
 	[16, 18], # dates when to email student and supervisor
 	[20], # first escalation emails
 	[30, 32] # second escalation emails
@@ -35,7 +35,7 @@ mark_complete_reminder_dates = [
 ]
 #
 #	summary_email_dates - dates for summary email
-summary_email_dates = [10, 16, 18, 20]
+summary_email_dates = [16, 18, 20]
 #
 #	first_escalation_emails - set of emails for first escalation
 first_escalation_emails = ['a.mottura@bham.ac.uk']
@@ -93,7 +93,7 @@ i = 2
 while ws['A'+str(i)].value != None:
 	students.append({'name':ws['A'+str(i)].value, 'id':ws['B'+str(i)].value, 'supervisor_name':ws['C'+str(i)].value, 'supervisor_id':ws['D'+str(i)].value, 'skip': False})
 	if ws['E'+str(i)].value != None:
-		students[-1]['skip'] == True
+		students[-1]['skip'] = True
 	i += 1   
 
 
@@ -256,7 +256,7 @@ Met&Mat PG Office
 			message_body = """Hi %s,
 Your student, %s, has uploaded a GRS2 form to Canvas.
 Please check the uploaded form is complete and is an accurate representation of your official monthly supervision meeting, then mark it as complete.
-You can do so by visiting https://canvas.bham.ac.uk/courses/7054/gradebook/speed_grader?assignment_id=%s#{"student_id"%%3A"%s"}
+You can do so by visiting https://canvas.bham.ac.uk/courses/7054/gradebook/speed_grader?assignment_id=%s#%%7B%%22student_id%%22%%3A%%22%s%%22%%7D
 If you are currently on leave and unable to do this, please notify the PG office by replying to this email.
 Best Regards,
 Met&Mat PG Office
@@ -267,7 +267,7 @@ Met&Mat PG Office
 			message_body = """Hi %s,
 Your student, %s, has uploaded a GRS2 form to Canvas, and this needs to be marked as complete as soon as possible.
 Please check the uploaded form is complete and is an accurate representation of your official monthly supervision meeting, then mark it as complete.
-You can do so by visiting https://canvas.bham.ac.uk/courses/7054/gradebook/speed_grader?assignment_id=%s#{"student_id"%%3A"%s"}
+You can do so by visiting https://canvas.bham.ac.uk/courses/7054/gradebook/speed_grader?assignment_id=%s#%%7B%%22student_id%%22%%3A%%22%s%%22%%7D
 If you are currently on leave and unable to do this, please notify the PG office by replying to this email.
 Note that this needs to be done quickly, as the end of the month is approaching.
 Best Regards,
@@ -280,7 +280,7 @@ Met&Mat PG Office
 			message_body = """Hi %s,
 Your student, %s, has uploaded a GRS2 form to Canvas, and this needs to be marked as complete now!
 Please check the uploaded form is complete and is an accurate representation of your official monthly supervision meeting, then mark it as complete.
-You can do so by visiting https://canvas.bham.ac.uk/courses/7054/gradebook/speed_grader?assignment_id=%s#{"student_id"%%3A"%s"}
+You can do so by visiting https://canvas.bham.ac.uk/courses/7054/gradebook/speed_grader?assignment_id=%s#%%7B%%22student_id%%22%%3A%%22%s%%22%%7D
 If you are currently on leave and unable to do this, please notify the PG office by replying to this email.
 Please do this now!
 Best Regards,
@@ -315,17 +315,17 @@ Here is the summary of GRS2 form submissions.
 	message_body += '\nThese students have not submitted a form yet:\n'
 	for student in students:
 		if student['form'] == False and student['complete'] == False:
-			message_body += '  - ' + student['name'] + ' \n' 
+			message_body += '  - ' + student['name'].encode('ascii') + ' \n' 
 	
 	message_body += '\nThese students have submitted a form, but it still needs to be marked as complete by the supervisor:\n'
 	for student in students:
 		if student['form'] == True and student['complete'] == False:
-			message_body += '  - ' + student['name'] + ' \n'
+			message_body += '  - ' + student['name'].encode('ascii') + ' \n'
 	
 	message_body += '\nThese students have completed the GRS2 form requirements:\n'
 	for student in students:
 		if student['form'] == True and student['complete'] == True:
-			message_body += '  - ' + student['name'] + ' \n'
+			message_body += '  - ' + student['name'].encode('ascii') + ' \n'
 	
 	message_body += '\n'
 	message_body += 'Bye bye,\nGRS2 form monitoring'
