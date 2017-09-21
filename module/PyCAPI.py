@@ -249,6 +249,10 @@ class CanvasAPI():
 		payload.append((u'file', file_content))
 		return self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
 
+        def update_assignment(self, course_id, assignment_id, parameter, value):
+		"""Update assignment details for a specific assignment. See online documentation for allowed parameters."""
+		payload = {'assignment[%s]' % parameter: value}
+		return self.put('/courses/%s/assignments/%s' % (course_id, assignment_id), payload=payload)
 	
 
 def datetime2unicode(datetimevar):
