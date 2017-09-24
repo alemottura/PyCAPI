@@ -140,10 +140,14 @@ for student in students:
 # Using deadlines to get current assignment
 assignments = capi.get_assignments(course_id)
 for assignment in assignments:
-	if todaydate.month == datetime.datetime.strptime(assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').month:
+	due_datetime = datetime.datetime.strptime(assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ')
+	if todaydate.month == due_datetime.month and todaydate.year == due_datetime.year:
 		assignment_id = assignment['id']
 	next_assignment = False
-	if todaydate.month+1 == datetime.datetime.strptime(assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').month:
+	if todaydate.month == 12:
+		if due_datetime.month == 1 and due_datetime.year == todaydate.year+1:
+			next_assignment = True
+	elif todaydate.month+1 == due_datetime.month and due_datetime.year == todaydate.year:
 		next_assignment = True
 for student in students:
 	# Download details of submission for the user
@@ -352,12 +356,11 @@ keylist = [
 	'vericite_enabled',
 	'integration_data',
 	'integration_id',
-	'peer_reviews',
-	'automatic_peer_reviews',
 	'notify_of_update',
 	'group_category_id',
 	'grade_group_students_individually',
 	'external_tool_tag_attributes',
+	'automatic_peer_reviews',
 	'points_possible',
 	'grading_type',
 	'muted',
@@ -370,14 +373,21 @@ keylist = [
 	'assignment_group_id',
 	'description'
 ]
+# Keys to be copied that contain a list:
+listKeys = [
+	'submission_types',
+	'allowed_extensions'
+]
 # Check whether an assignment is present for the following month
 if workingday > 19 and next_assignment == False: # New assignment needed for next month
-	#print 'New assignment for next month needed'
 	current_assignment = capi.get_assignment(course_id, assignment_id)
 	payload = {} # Create payload which contains new assignment information
 	for key in current_assignment: # Copy keys from old assignment to new assignment
 		if key in keylist:
-			payload['assignment['+key+']'] = current_assignment[key]
+			if key in listKeys:
+				payload['assignment['+key+'][]'] = current_assignment[key]
+			else:
+				payload['assignment['+key+']'] = current_assignment[key]
 	# Figure out month and year of next assignment
 	if datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').month == 12:
 		nextmonthnum = 1
@@ -388,6 +398,7 @@ if workingday > 19 and next_assignment == False: # New assignment needed for nex
 	# Create name and set other settings for new assignment
 	payload['assignment[name]'] = 'GRS2 Form - ' + calendar.month_name[nextmonthnum] + ' ' + str(nextmonthyear)
 	payload['assignment[position]'] = current_assignment['position']+1
+	payload['assignment[peer_reviews]'] = 'false'
 	unlock_at = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').replace(year=nextmonthyear).replace(month=nextmonthnum).replace(day=1)
 	payload['assignment[unlock_at]'] = PyCAPI.datetime2unicode(unlock_at)
 	due_at = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').replace(year=nextmonthyear).replace(month=nextmonthnum).replace(day=27)
