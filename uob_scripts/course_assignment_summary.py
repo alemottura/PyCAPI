@@ -11,15 +11,15 @@
 #       Things that need to be set:
 #
 #       output_dir - path of Excel file to be saved
-output_dir = './'
+output_dir = '/mnt/metadmin/CANVASBOTS/UG/Courses_and_Assignments/'
 #
 #       name_extenstion - name of Excel file after Canvas course number
-name_extenstion = 'Course_Assignment_Summary'
+name_extension = 'assignment_summary'
 #
 #
 #       included_terms - list of terms that the user wishes to recieve when
 #       running the code, format = 'yyyy/yy' or 'Default term'
-included_terms = ['2017/18', 'Default term']
+included_terms = ['2017/18']
 #
 #
 #       offset_days - working days after which the due date of an assignment
@@ -35,7 +35,7 @@ reminder_dates = [
 #
 #
 #       TSO_email - email of TSO
-TSO_email = ['a.mottura@bham.ac.uk']
+TSO_email = ['me@mottura.org']
 #
 #
 #
@@ -54,7 +54,7 @@ from openpyxl import worksheet
 
 
 capi = PyCAPI.CanvasAPI()
-#mail = uob_utils.MailAPI()
+mail = uob_utils.MailAPI()
 today = datetime.datetime.now()
 
 
@@ -64,7 +64,7 @@ today = datetime.datetime.now()
 #
 wb = Workbook()
 wb.remove(wb.active) # Remove initially created sheet
-ws = wb.create_sheet(title='Course Summary') # Set active worksheet and name
+ws = wb.create_sheet(title='Courses') # Set active worksheet and name
 
 
 
@@ -103,14 +103,14 @@ ws.column_dimensions[col_senroll].width = 20
 # Retrieve data of all courses from Canvas account
 #
 # Following 4 lines are needed to return courses that only I am a teacher on
-payload = {}
-payload['enrollment_type'] = 'teacher' # Remove this line if used by admin
-payload['include[]'] = ['term', 'teachers', 'total_students']
+#payload = {}
+#payload['enrollment_type'] = 'teacher' # Remove this line if used by admin
+#payload['include[]'] = ['term', 'teachers', 'total_students']
 #courses = capi.get('/courses', payload=payload) # Remove this line if used by admin
 #courses = capi.get_courses(payload=payload) # Use this line when used by Met&Mat admin
 #print json.dumps(courses, indent = 2)
-
-allcourses = capi.get('/courses', payload=payload)
+#allcourses = capi.get('/courses', payload=payload)
+allcourses = capi.get_courses(account_id='114', include=['term', 'teachers', 'total_students'])
 courses = []
 for course in allcourses:
     if course['term']['name'] in included_terms:
@@ -140,7 +140,7 @@ ws.auto_filter.ref = 'A1:AA'+str(i)
 ###############################################################################
 # Summarise assignments in a different Excel sheet
 #
-ws = wb.create_sheet(title='Assignment Summary') # Set active worksheet
+ws = wb.create_sheet(title='Assignments') # Set active worksheet
 
 
 
@@ -221,6 +221,7 @@ ws.column_dimensions[col_weight].width = 12
 i = 2
 for course in courses:
     course_assignments = capi.get_assignments(course['id'])
+    payload = {}
     payload['include[]'] = ['assignments']
     assignment_groups = capi.get('/courses/%s/assignment_groups' % course['id'], payload=payload)
     analytics_missing = False
@@ -234,8 +235,8 @@ for course in courses:
         ws[col_cid+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['id'])+'")'
         ws[col_cnm+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['name'])+'")'
         ws[col_term+str(i)] = course['term']['name']
-        ws[col_asgnid+str(i)] = '=HYPERLINK("'+assignment['html_url']+'", "'+str(assignment['id'])+'")'
-        ws[col_asgnnm+str(i)] = '=HYPERLINK("'+assignment['html_url']+'", "'+str(assignment['name'])+'")'
+        ws[col_asgnid+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'/assignments/'+str(assignment['id'])+'", "'+str(assignment['id'])+'")'
+        ws[col_asgnnm+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'/assignments/'+str(assignment['id'])+'", "'+str(assignment['name'].encode('ascii', 'ignore'))+'")'
         ws[col_cadmin+str(i)] = course['account_id']
         ws[col_cavail+str(i)]= course['workflow_state'].title()
         if assignment['published']:
@@ -368,7 +369,8 @@ ws.auto_filter.ref = 'A1:AA'+str(i)
 ###############################################################################
 # Save the created Excel file with customised filename
 #
-filename = name_extenstion+'_'+str(datetime.date.today())
+#filename = name_extenstion+'_'+str(datetime.date.today())
+filename = name_extension
 file_extension = '.xlsx'
 wb.save(filename = output_dir+filename+file_extension)
-print 'Workbook: ' + filename + ' saved'
+#print 'Workbook: ' + filename + ' saved'
