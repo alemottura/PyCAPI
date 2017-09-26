@@ -121,8 +121,8 @@ for course in allcourses:
 i = 2
 for course in courses: # Loop through all courses in Canvas account
     ws[col_term+str(i)] = course['term']['name']
-    ws[col_cid+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['id'])+'")'
-    ws[col_cnm+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['name'])+'")'
+    ws[col_cid+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['id'])+'")'
+    ws[col_cnm+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['name'])+'")'
     ws[col_cadmin+str(i)] = course['account_id']
     ws[col_cavail+str(i)] = course['workflow_state'].title()
     if course['workflow_state'] != 'available':
@@ -232,11 +232,11 @@ for course in courses:
     #print json.dumps(course_assignments, indent = 2)
     #print json.dumps(assignment_groups, indent = 2)
     for assignment in course_assignments:
-        ws[col_cid+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['id'])+'")'
-        ws[col_cnm+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['name'])+'")'
+        ws[col_cid+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['id'])+'")'
+        ws[col_cnm+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['name'])+'")'
         ws[col_term+str(i)] = course['term']['name']
-        ws[col_asgnid+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'/assignments/'+str(assignment['id'])+'", "'+str(assignment['id'])+'")'
-        ws[col_asgnnm+str(i)] = '=HYPERLINK("https://canvas.bham.ac.uk/courses/'+str(course['id'])+'/assignments/'+str(assignment['id'])+'", "'+str(assignment['name'].encode('ascii', 'ignore'))+'")'
+        ws[col_asgnid+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'/assignments/'+str(assignment['id'])+'", "'+str(assignment['id'])+'")'
+        ws[col_asgnnm+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'/assignments/'+str(assignment['id'])+'", "'+str(assignment['name'].encode('ascii', 'ignore'))+'")'
         ws[col_cadmin+str(i)] = course['account_id']
         ws[col_cavail+str(i)]= course['workflow_state'].title()
         if assignment['published']:
