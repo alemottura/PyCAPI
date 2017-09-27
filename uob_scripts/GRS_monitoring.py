@@ -149,6 +149,8 @@ for assignment in assignments:
 			next_assignment = True
 	elif todaydate.month+1 == due_datetime.month and due_datetime.year == todaydate.year:
 		next_assignment = True
+
+
 for student in students:
 	# Download details of submission for the user
 	submission = capi.get_assignment_submissions(course_id, assignment_ids=assignment_id, user_ids=student['canvas_id'], grouped=False)
@@ -379,7 +381,7 @@ listKeys = [
 	'allowed_extensions'
 ]
 # Check whether an assignment is present for the following month
-if workingday > 19 and next_assignment == False: # New assignment needed for next month
+if workingday > 18 and next_assignment == False: # New assignment needed for next month
 	current_assignment = capi.get_assignment(course_id, assignment_id)
 	payload = {} # Create payload which contains new assignment information
 	for key in current_assignment: # Copy keys from old assignment to new assignment
@@ -399,6 +401,8 @@ if workingday > 19 and next_assignment == False: # New assignment needed for nex
 	payload['assignment[name]'] = 'GRS2 Form - ' + calendar.month_name[nextmonthnum] + ' ' + str(nextmonthyear)
 	payload['assignment[position]'] = current_assignment['position']+1
 	payload['assignment[peer_reviews]'] = 'false'
+	payload['assignment[turnitin_enabled]'] = 'false'
+	payload['assignment[omit_from_final_grade]'] = 'false'
 	unlock_at = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').replace(year=nextmonthyear).replace(month=nextmonthnum).replace(day=1)
 	payload['assignment[unlock_at]'] = PyCAPI.datetime2unicode(unlock_at)
 	due_at = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').replace(year=nextmonthyear).replace(month=nextmonthnum).replace(day=27)
@@ -406,3 +410,5 @@ if workingday > 19 and next_assignment == False: # New assignment needed for nex
 	lock_at = datetime.datetime.strptime(current_assignment['due_at'], '%Y-%m-%dT%H:%M:%SZ').replace(year=nextmonthyear).replace(month=nextmonthnum).replace(day=28)
 	payload['assignment[lock_at]'] = PyCAPI.datetime2unicode(lock_at)
 	capi.post('/courses/%s/assignments' % course_id, payload=payload)
+
+
