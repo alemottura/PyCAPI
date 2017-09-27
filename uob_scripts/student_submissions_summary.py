@@ -28,10 +28,10 @@
 #	Things that need to be set:
 #
 #	student_list - path to Excel file containing details of students
-student_list = './tutees.xlsx'
+student_list = '/mnt/metadmin/CANVASBOTS/UG/Input/Tutorial_Groups.xlsx'
 #
 #	output_dir - path to directory where any files should be saved
-output_dir = './'
+output_dir = '/mnt/metadmin/CANVASBOTS/UG/Student_Submissions/'
 #
 #	ug_canvas_accounts - list of Canvas accounts you manage
 #	This is required because if students are registered to courses from other
