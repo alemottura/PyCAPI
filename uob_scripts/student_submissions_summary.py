@@ -39,6 +39,11 @@ output_dir = '/mnt/metadmin/CANVASBOTS/UG/Student_Submissions/'
 #	and fail.
 ug_canvas_accounts = [115, 116, 117, 118]
 #
+#	academic_year - starting year of academic year that the script will give
+#	submission information about ie. 2017 for 2017/18 academic year
+academic_year = 2017
+#
+#
 #	NOTE: this script sends email using the class defined in
 #	PyCAPI/uob_scripts/uob_utils.py
 #	If you wish to use the script, you need to check that you set up email
@@ -166,8 +171,14 @@ for student in students:
 			submissions_payload["student_ids[]"] = 'sis_login_id:'+student['id']
 			submissions_payload["grouped"] = False
 			submissions_payload["include[]"] = "assignment"
-			submissions = capi.get("/courses/%s/students/submissions" % course["id"], single=True, payload=submissions_payload)
+			allsubmissions = capi.get("/courses/%s/students/submissions" % course["id"], single=True, payload=submissions_payload)
 			
+			submissions = []
+			for submission in allsubmissions:
+				if uob_utils.AcademicYear(datetime.datetime.strptime(submission['cached_due_date'],'%Y-%m-%dT%H:%M:%SZ').date()) == academic_year:
+					submissions.append(submission)
+
+
 			# Loop through all submissions and add them to student information
 			for submission in submissions[0]["submissions"]:
 				submission['assignment']['course_name'] = course['name']
