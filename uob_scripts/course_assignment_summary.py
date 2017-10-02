@@ -74,15 +74,17 @@ ws = wb.create_sheet(title='Courses') # Set active worksheet and name
 col_term = 'A'
 col_cid = 'B'
 col_cnm = 'C'
-col_cadmin = 'D'
-col_cavail = 'E'
-col_tenroll = 'F'
-col_senroll = 'G'
+col_ccd = 'D'
+col_cadmin = 'E'
+col_cavail = 'F'
+col_tenroll = 'G'
+col_senroll = 'H'
 
 # Format course summary sheet
 ws[col_term+'1'] = 'Term'
 ws[col_cid+'1'] = 'Course ID'
 ws[col_cnm+'1'] = 'Course Name'
+ws[col_ccd+'1'] = 'Course Code'
 ws[col_cadmin+'1'] = 'Admin'
 ws[col_cavail+'1'] = 'Availability'
 ws[col_tenroll+'1'] = 'Teachers Enrolled'
@@ -92,6 +94,7 @@ ws[col_senroll+'1'] = 'Students Enrolled'
 ws.column_dimensions[col_term].width = 10
 ws.column_dimensions[col_cid].width = 11
 ws.column_dimensions[col_cnm].width = 30
+ws.column_dimensions[col_ccd].width = 15
 ws.column_dimensions[col_cadmin].width = 15
 ws.column_dimensions[col_cavail].width = 15
 ws.column_dimensions[col_tenroll].width = 20
@@ -123,6 +126,7 @@ for course in courses: # Loop through all courses in Canvas account
     ws[col_term+str(i)] = course['term']['name']
     ws[col_cid+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['id'])+'")'
     ws[col_cnm+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['name'])+'")'
+    ws[col_ccd+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['course_code'])+'")'
     ws[col_cadmin+str(i)] = course['account_id']
     ws[col_cavail+str(i)] = course['workflow_state'].title()
     if course['workflow_state'] != 'available':
@@ -149,31 +153,33 @@ ws = wb.create_sheet(title='Assignments') # Set active worksheet
 #
 col_cid = 'A'
 col_cnm = 'B'
-col_term = 'C'
-col_asgnid = 'D'
-col_asgnnm = 'E'
-col_cadmin = 'F'
-col_cavail = 'G'
-col_asgnavail = 'H'
-col_asgntype = 'I'
-col_group = 'J'
-col_unlock = 'K'
-col_due = 'L'
-col_lock = 'M'
-col_sub = 'N'
-col_ungr = 'O'
-col_miss = 'P'
-col_late = 'Q'
-col_median = 'R'
-col_grby = 'S'
-col_fingr = 'T'
-col_weight = 'U'
-col_muted = 'V'
+col_ccd = 'C'
+col_term = 'D'
+col_asgnid = 'E'
+col_asgnnm = 'F'
+col_cadmin = 'G'
+col_cavail = 'H'
+col_asgnavail = 'I'
+col_asgntype = 'J'
+col_group = 'K'
+col_unlock = 'L'
+col_due = 'M'
+col_lock = 'N'
+col_sub = 'O'
+col_ungr = 'P'
+col_miss = 'Q'
+col_late = 'R'
+col_median = 'S'
+col_grby = 'T'
+col_fingr = 'U'
+col_weight = 'V'
+col_muted = 'W'
 
 
 # Format assignment summary sheet
 ws[col_cid+'1'] = 'Course ID'
 ws[col_cnm+'1'] = 'Course Name'
+ws[col_ccd+'1'] = 'Course Code'
 ws[col_term+'1'] = 'Term'
 ws[col_asgnid+'1'] = 'Assignment ID'
 ws[col_asgnnm+'1'] = 'Assignment Name'
@@ -198,6 +204,7 @@ ws[col_muted+'1'] = 'Muted'
 # Set column widths if needed
 ws.column_dimensions[col_cid].width = 11
 ws.column_dimensions[col_cnm].width = 20
+ws.column_dimensions[col_ccd].width = 15
 ws.column_dimensions[col_asgnid].width = 14
 ws.column_dimensions[col_asgnnm].width = 30
 ws.column_dimensions[col_cadmin].width = 15
@@ -234,6 +241,7 @@ for course in courses:
     for assignment in course_assignments:
         ws[col_cid+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['id'])+'")'
         ws[col_cnm+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['name'])+'")'
+        ws[col_ccd+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'", "'+str(course['course_code'])+'")'  
         ws[col_term+str(i)] = course['term']['name']
         ws[col_asgnid+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'/assignments/'+str(assignment['id'])+'", "'+str(assignment['id'])+'")'
         ws[col_asgnnm+str(i)] = '=HYPERLINK("http://147.188.152.33:8080/eval.php?url=https://canvas.bham.ac.uk/courses/'+str(course['id'])+'/assignments/'+str(assignment['id'])+'", "'+str(assignment['name'].encode('ascii', 'ignore'))+'")'
