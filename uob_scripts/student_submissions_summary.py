@@ -39,9 +39,9 @@ output_dir = '/mnt/metadmin/CANVASBOTS/UG/Student_Submissions/'
 #	and fail.
 ug_canvas_accounts = [115, 116, 117, 118]
 #
-#	academic_year - starting year of academic year that the script will give
-#	submission information about ie. 2017 for 2017/18 academic year
-academic_year = 2017
+#	requested_term - specify which academic term you wish to collect data on
+#	submissions for in string format 'yyyy/yy'
+requested_term = '2017/18'
 #
 #
 #	NOTE: this script sends email using the class defined in
@@ -129,6 +129,7 @@ page_views_payload = {}
 courses_payload={}
 courses_payload["enrollment_state"] = "active" # Only return active courses
 courses_payload["state[]"] = "available" # Only return available courses
+courses_payload["include[]"] = "term"
 
 # Loop through all students
 for student in students:
@@ -163,21 +164,15 @@ for student in students:
 	# Loop through all courses
 	for course in courses:
 		
-		# Only proceed if authorised user has rights to access the course
-		if course["account_id"] in ug_canvas_accounts:
+		# Only proceed if authorised user has rights to access the course and course is during the requested term
+		if course["account_id"] in ug_canvas_accounts and course['term']['name'] == requested_term:
 			
 			# Obtain submissions of student in the course
 			submissions_payload={}
 			submissions_payload["student_ids[]"] = 'sis_login_id:'+student['id']
 			submissions_payload["grouped"] = False
 			submissions_payload["include[]"] = "assignment"
-			allsubmissions = capi.get("/courses/%s/students/submissions" % course["id"], single=True, payload=submissions_payload)
-			
-			submissions = []
-			for submission in allsubmissions:
-				if uob_utils.AcademicYear(datetime.datetime.strptime(submission['cached_due_date'],'%Y-%m-%dT%H:%M:%SZ').date()) == academic_year:
-					submissions.append(submission)
-
+			submissions = capi.get("/courses/%s/students/submissions" % course["id"], single=True, payload=submissions_payload)
 
 			# Loop through all submissions and add them to student information
 			for submission in submissions[0]["submissions"]:
