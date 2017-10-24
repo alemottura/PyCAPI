@@ -2,7 +2,7 @@
 import itertools
 import requests
 import os
-
+from time import sleep
 
 class CanvasAPI():
 	""""""
@@ -56,8 +56,25 @@ class CanvasAPI():
 		while True: # enter infinite loop
 			if payload is None: # if no payload, send empty payload
 				payload = {}
-			r = self.session.get(url, data=payload) # send get request
-			r.raise_for_status() # raise an exception if there is an http error
+			attempt = 0 # set up request attempt counter
+			try_again = True # set up request attempt boolean
+			while try_again == True: # while try_again is equal to two
+				attempt += 1 # increment attempt counter
+				r = self.session.get(url, data=payload) # send get request
+				if 200 <= r.status_code <= 299: # if request is OK...
+					try_again = False # ...do not repeat request - move on...
+				elif 500 <= r.status_code <= 599: # if request indicates server error...
+					if attempt < 5: # ...and we have repeated the request less than 5 times...
+						try_again = True # ...try request again
+						sleep(5) # wait 5s before attempting again
+					else: # ...if request has been repeated 5 times or more...
+						try_again = False # ...do not repeat request
+						r.raise_for_status() # raise error
+				else: # otherwise (all other status codes)
+					try_again = False # do not repeat request
+					r.raise_for_status() # raise error
+			#r = self.session.get(url, data=payload) # send get request
+			r.raise_for_status() # this is really not needed - it is here in case something went wrong...
 			responses.append(r) # append result of request to responses
 			if 'next' in r.links: # if the result shows there is more data to obtain
 				url = r.links['next']['url'] # obtain url for the next chunk of data, and start at the top of while loop
