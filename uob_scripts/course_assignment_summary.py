@@ -30,7 +30,7 @@ offset_days = 14
 #       reminder_dates - days from due date for reminder emails to be sent
 reminder_dates = [
 	[10], # day to email teachers
-	[15] # day to email teachers and TSO
+	[14] # day to email teachers and TSO
 	]
 #
 #
@@ -276,7 +276,8 @@ for course in courses:
 			#cc_recipients = []
 			if (int(np.busday_count(due_date,today)) in reminder_dates[0]) and assignment['needs_grading_count'] != 0: # If reminder email for teacher is needed
 				# Collects email of all teachers for assignment to email
-				recipients = re.findall('[A-Za-z0-9\.]*@bham.ac.uk',assignment['description'])
+				recipients = TSO_email
+				recipients.extend(re.findall('[A-Za-z0-9\.]*@bham.ac.uk',assignment['description']))
 				if len(recipients) > 0:
 				#for course_teacher in course['teachers']:
 				#	teacher = capi.get_user(course_teacher['id'])
