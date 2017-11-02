@@ -23,14 +23,14 @@ course_id = '7054'
 form_submission_reminder_dates = [
 	[6, 14], # dates when to email student only
 	[16, 18], # dates when to email student and supervisor
-	[20], # first escalation emails
+	[19], # first escalation emails
 	[30, 32] # second escalation emails
 ]
 #
 #	form_submission_reminder_dates - dates for form submission reminders
 mark_complete_reminder_dates = [
 	[5, 10, 15, 18], # dates when to email supervisor only
-	[20], # first escalation emails
+	[19], # first escalation emails
 	[30, 32] # second escalation emails
 ]
 #
