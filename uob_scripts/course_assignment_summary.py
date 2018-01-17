@@ -338,10 +338,13 @@ Met&Mat Office
 						ws[col_late+str(i)] = 'None'
 					else:
 						ws[col_late+str(i)] = analytic['tardiness_breakdown']['late']
-					if analytic['median'] == None:
+					if analytic['points_possible'] == None:
 						ws[col_median+str(i)] = 'None'
 					else:
-						ws[col_median+str(i)] = analytic['median']
+						if analytic['median'] == None:
+							ws[col_median+str(i)] = 'None'
+						else:
+							ws[col_median+str(i)] = analytic['median']
 		else:
 			ws[col_miss+str(i)] = 'Missing'
 			ws[col_late+str(i)] = 'Missing'
