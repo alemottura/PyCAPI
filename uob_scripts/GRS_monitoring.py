@@ -23,19 +23,30 @@ course_id = '7054'
 form_submission_reminder_dates = [
 	[6, 14], # dates when to email student only
 	[16, 18], # dates when to email student and supervisor
-	[20], # first escalation emails
+	[19], # first escalation emails
 	[30, 32] # second escalation emails
+]
+form_submission_reminder_dates = [
+	[1, 3],
+	[5, 7, 9, 11],
+	[13],
+	[15]
 ]
 #
 #	form_submission_reminder_dates - dates for form submission reminders
 mark_complete_reminder_dates = [
 	[5, 10, 15, 18], # dates when to email supervisor only
-	[20], # first escalation emails
+	[19], # first escalation emails
 	[30, 32] # second escalation emails
+]
+mark_complete_reminder_dates = [
+	[1, 3, 5],
+	[7, 9, 11, 13],
+	[15]
 ]
 #
 #	summary_email_dates - dates for summary email
-summary_email_dates = [16, 18, 20]
+summary_email_dates = [14, 15, 16, 17, 18, 20]
 #
 #	first_escalation_emails - set of emails for first escalation
 first_escalation_emails = ['a.mottura@bham.ac.uk']
