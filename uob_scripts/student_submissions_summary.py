@@ -34,9 +34,8 @@ student_list = '/mnt/metadmin/CANVASBOTS/UG/Input/Tutorial_Groups.xlsx'
 output_dir = '/mnt/metadmin/CANVASBOTS/UG/Student_Submissions/'
 #
 #	ug_canvas_accounts - list of Canvas accounts you manage
-#	This is required because if students are registered to courses from other
-#	accounts, this script will attempt to obtain information from those courses
-#	and fail.
+#	This script assumes you are an admin for one or more accounts, and it uses
+#	this list to find out which courses your students are registered to.
 ug_canvas_accounts = [115, 116, 117, 118]
 #
 #	requested_term - specify which academic term you wish to collect data on
@@ -79,14 +78,14 @@ today = date.today()
 # Only continue with script if it is term time
 #
 if uob_utils.TermWeek(today)[0] == 0:
-	exit
+	exit()
 
 
 ###############################################################################
 # Only continue if today is a week day
 #
 if today.weekday() > 4:
-	exit
+	exit()
 
 
 
@@ -110,6 +109,21 @@ students = sorted(students, key=lambda k: "%s %s" % (k['tutor_id'], k['id']))
 
 
 
+
+###############################################################################
+# Create a dictionary of course registrations
+#
+course_registrations = {}
+for account in ug_canvas_accounts:
+	courses = capi.get_courses(account_id=account,include=['term'],state=['available'])
+	for course in courses:
+		users = capi.get_users(course['id'])
+		for user in users:
+			if course_registrations.has_key(user['id']):
+				course_registrations[user['id']].append(course['id'])
+			else:
+				course_registrations[user['id']] = [course['id']]
+				
 
 
 
@@ -159,10 +173,11 @@ for student in students:
 		student['last_access']['ip'] = page_views[0]['remote_ip']
 	
 	# Request list of courses for student
-	courses = capi.get("/users/%s/courses" % ('sis_login_id:'+student['id']), payload=courses_payload)
+	#courses = capi.get("/users/%s/courses" % ('sis_login_id:'+student['id']), payload=courses_payload)
 	
 	# Loop through all courses
-	for course in courses:
+	for course_id in course_registrations[student['canvas_id']]:
+		course = capi.get_courses(course_id=course_id,include=['term'])
 		
 		# Only proceed if authorised user has rights to access the course and course is during the requested term
 		if course["account_id"] in ug_canvas_accounts and course['term']['name'] == requested_term:
@@ -270,7 +285,8 @@ for student in students:
 		for submission in student['graded_submissions']:
 			ws['B'+str(i)] = submission['assignment']['name']
 			ws.merge_cells('B'+str(i)+':G'+str(i))
-			ws['H'+str(i)] = round((float(submission['score'])/float(submission['assignment']['points_possible']))*100, 0)
+			if submission['assignment']['points_possible'] != 0:
+				ws['H'+str(i)] = round((float(submission['score'])/float(submission['assignment']['points_possible']))*100, 0)
 			i += 1
 		i += 1
 
@@ -377,7 +393,8 @@ for student in students:
 		# Determine whether the submission was graded
 		if submission['workflow_state'] == 'graded':
 			ws[col_graded+str(i)] = 'Yes'
-			ws[col_grade+str(i)] = round((float(submission['score'])/float(submission['assignment']['points_possible']))*100, 0)
+			if submission['assignment']['points_possible'] != 0:
+				ws[col_grade+str(i)] = round((float(submission['score'])/float(submission['assignment']['points_possible']))*100, 0)
 			for cell in ws[str(i)+':'+str(i)]:
 					cell.font = Font(color='00006600')
 
