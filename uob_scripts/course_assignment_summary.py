@@ -19,7 +19,7 @@ name_extension = 'assignment_summary'
 #
 #       included_terms - list of terms that the user wishes to recieve when
 #       running the code, format = 'yyyy/yy' or 'Default term'
-included_terms = ['2017/18']
+included_terms = ['2018/19']
 #
 #
 #       offset_days - working days after which the due date of an assignment
