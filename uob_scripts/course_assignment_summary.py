@@ -317,7 +317,7 @@ Best Regards,
 Met&Mat Office
 					""" % (assignment['name'], assignment['html_url'])
 					# Now send email to teachers and TSO
-					msg = uob_utils.EMailMessage(", ".join(recipients), message_subject, cc_addr=", ".join(cc_recipients))
+					msg = uob_utils.EMailMessage(", ".join(recipients), message_subject)
 					msg.body(message_body)
 					#all_recipients = recipients + cc_recipients
 					mail.send(recipients, msg) # Send email
