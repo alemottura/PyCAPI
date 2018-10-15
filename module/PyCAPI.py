@@ -238,7 +238,23 @@ class CanvasAPI():
 	def comment_assignment_submission(self, course_id, assignment_id, user_id, comment):
 		"""Add comment to assignment submission."""
 		payload = {'grade_data[%s][text_comment]' % user_id: comment}
-		return self.post('/courses/%s/assignments/%s/submissions/update_grades' % (course_id, assignment_id), payload=payload)            
+		return self.post('/courses/%s/assignments/%s/submissions/update_grades' % (course_id, assignment_id), payload=payload)
+	
+	def comment_assignment_submission_with_upload(self, course_id, assignment_id, user_id, file_name):
+		"""Attach document as comment to assignment submission."""
+		payload = {}
+		payload['name'] = file_name
+		pending_object = self.post('/courses/%s/assignments/%s/submissions/%s/comments/files' % (course_id, assignment_id, user_id), payload=payload) # Make post request to Canvas to create pending object
+		payload = list(pending_object['upload_params'].items())
+		with open(file_name, 'rb') as f:
+			file_content = f.read() # Add file content to payload returned by previous post request
+		payload.append((u'file', file_content))
+		pending_file = self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
+		payload = {}
+		payload = {'grade_data[%s][text_comment]' % user_id: 'See attached file'}
+		payload = {'grade_data[%s][file_ids]' % user_id: [pending_file['id']]}
+		return self.post('/courses/%s/assignments/%s/submissions/update_grades' % (course_id, assignment_id), payload=payload)
+		
 
 	def get_submission_attachments(self, submission, as_bytes=False):
 		"""
@@ -266,7 +282,7 @@ class CanvasAPI():
 		payload.append((u'file', file_content))
 		return self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
 
-        def update_assignment(self, course_id, assignment_id, parameter, value):
+	def update_assignment(self, course_id, assignment_id, parameter, value):
 		"""Update assignment details for a specific assignment. See online documentation for allowed parameters."""
 		payload = {'assignment[%s]' % parameter: value}
 		return self.put('/courses/%s/assignments/%s' % (course_id, assignment_id), payload=payload)

@@ -14,11 +14,14 @@ allcourses = capi.get_courses(account_id='114', include=['term','teachers'])
 
 courses = []
 
+#for course in allcourses:
+#	if course['term']['name'] in included_terms:
+#		courses.append(course)
+
+
 for course in allcourses:
-	if course['term']['name'] in included_terms:
+	if course['id'] == 34797:
 		courses.append(course)
-
-
 
 for course in courses:
 	print " "
