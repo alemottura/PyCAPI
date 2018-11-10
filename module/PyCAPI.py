@@ -41,10 +41,12 @@ class CanvasAPI():
 			r = r.json()
 		return r # return result of request
 
-	def post_file(self,url, to_json=True, payload=None):
+	def post_file(self,url, to_json=True, files=None, payload=None):
 		if payload is None: # if no payload, send empty payload
 			payload = {}
-		r = requests.post(url, files=payload) # post to url including multi-part data
+		if files is None:
+			files = {}
+		r = requests.post(url, files=files, data=payload) # post to url including multi-part data
 		r.raise_for_status() # raise an exception if there is an http error
 		if to_json:
 			r = r.json()
@@ -190,12 +192,11 @@ class CanvasAPI():
 		payload = {}
 		payload['name'] = file_name
 		payload['parent_folder_path'] = file_path
+		payload['size'] = os.path.getsize(file_name)
 		pending_object = self.post('/courses/%s/files' % course_id, payload=payload) # Make post request to Canvas to create pending object
-		payload = list(pending_object['upload_params'].items())
-		with open(file_name, 'rb') as f:
-			file_content = f.read() # Add file content to payload returned by previous post request
-		payload.append((u'file', file_content))
-		return self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
+		payload = list(pending_object['upload_params'].items()) # create payload of upload parameters
+		files = {'file': open(file_name, 'rb')} # open file
+		return self.post_file(pending_object['upload_url'], files=files, payload=payload) # Post the new payload and file to the url provided by the previous post request
 
 
 
@@ -246,10 +247,11 @@ class CanvasAPI():
 		payload['name'] = file_name
 		pending_object = self.post('/courses/%s/assignments/%s/submissions/%s/comments/files' % (course_id, assignment_id, user_id), payload=payload) # Make post request to Canvas to create pending object
 		payload = list(pending_object['upload_params'].items())
-		with open(file_name, 'rb') as f:
-			file_content = f.read() # Add file content to payload returned by previous post request
-		payload.append((u'file', file_content))
-		pending_file = self.post_file(pending_object['upload_url'], payload=payload) # Post the new payload to the url provided by the previous post request
+		#with open(file_name, 'rb') as f:
+		#	file_content = f.read() # Add file content to payload returned by previous post request
+		#payload.append((u'file', file_content))
+		files = {'file': open(file_name, 'rb')} # open file
+		pending_file = self.post_file(pending_object['upload_url'], files=files, payload=payload) # Post the new payload to the url provided by the previous post request
 		payload = {}
 		payload = {'grade_data[%s][text_comment]' % user_id: 'See attached file'}
 		payload = {'grade_data[%s][file_ids]' % user_id: [pending_file['id']]}

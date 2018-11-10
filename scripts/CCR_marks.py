@@ -15,7 +15,7 @@ from openpyxl.styles import Font, Color
 capi = PyCAPI.CanvasAPI()
 
 
-student_list = '/Users/alessandromottura/Dropbox/Teaching/LC_CCR/Challenges/Answers/Grades.xlsx'
+student_list = '/Users/alessandromottura/Dropbox/Teaching/LC_CCR/Challenges/Answers/ProblemSolvingGrades.xlsx'
 
 os.chdir('/Users/alessandromottura/Dropbox/Teaching/LC_CCR/Challenges/Answers/')
 
@@ -28,11 +28,11 @@ students = []
 i = 2
 while ws['A'+str(i)].value != None:
 	print ws['A'+str(i)].value, ' ', ws['D'+str(i)].value
-	print '  Setting grade: ' + str(ws['O'+str(i)].value)
-	capi.grade_assignment_submission(33531, 142109, ws['B'+str(i)].value, ws['O'+str(i)].value)
+	print '  Setting grade: ' + str(ws['K'+str(i)].value)
+	#capi.grade_assignment_submission(33531, 142110, ws['B'+str(i)].value, ws['K'+str(i)].value)
 	for filename in glob.glob('*'+ws['D'+str(i)].value+'*'):
 		print '  Uploading file: ' + filename
-		capi.comment_assignment_submission_with_upload(33531, 142109, ws['B'+str(i)].value, filename)
+		capi.comment_assignment_submission_with_upload(33531, 142110, ws['B'+str(i)].value, filename)
 	i = i + 1
 
 	
