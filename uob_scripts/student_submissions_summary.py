@@ -40,7 +40,7 @@ ug_canvas_accounts = [115, 116, 117, 118]
 #
 #	requested_term - specify which academic term you wish to collect data on
 #	submissions for in string format 'yyyy/yy'
-requested_term = '2017/18'
+requested_term = '2018/19'
 #
 #
 #	NOTE: this script sends email using the class defined in
