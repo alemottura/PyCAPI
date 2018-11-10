@@ -36,7 +36,7 @@ output_dir = '/mnt/metadmin/CANVASBOTS/UG/Student_Submissions/'
 #	ug_canvas_accounts - list of Canvas accounts you manage
 #	This script assumes you are an admin for one or more accounts, and it uses
 #	this list to find out which courses your students are registered to.
-ug_canvas_accounts = [115, 116, 117, 118]
+ug_canvas_accounts = [115, 116, 117, 118, 123, 124]
 #
 #	requested_term - specify which academic term you wish to collect data on
 #	submissions for in string format 'yyyy/yy'
@@ -233,8 +233,8 @@ for student in students:
 		msg = uob_utils.EMailMessage(current_tutor_name +' <'+ current_tutor_id + '@adf.bham.ac.uk>', 'Tutees Weekly Summary')
 		msg.body('Hi,\n\nThis is the weekly summary of progress for your tutees on Canvas.\n\nBest Regards,\nMet&Mat UG Office\n\n')
 		msg.attach_file(output_dir+current_tutor_id+'.xlsx') # attach workbook
-		if today.weekday() == 0: # only send email if it is a Monday...
-			mail.send(current_tutor_id + '@adf.bham.ac.uk', msg) # send email
+		#if today.weekday() == 0: # only send email if it is a Monday...
+		#	mail.send(current_tutor_id + '@adf.bham.ac.uk', msg) # send email
 		wb = Workbook() # Create a new workbook
 		wb.remove_sheet(wb.active) # Remove the active sheet
 		current_tutor_id = student['tutor_id'] # Store the current tutor_id so you can check when it changes
@@ -295,8 +295,8 @@ wb.save(filename=output_dir+current_tutor_id+'.xlsx') # save workbook
 msg = uob_utils.EMailMessage(current_tutor_name +' <'+ current_tutor_id + '@adf.bham.ac.uk>', 'Tutees Weekly Summary')
 msg.body('Hi,\n\nThis is the weekly summary of progress for your tutees on Canvas.\n\nBest Regards,\nMet&Mat UG Office\n\n')
 msg.attach_file(output_dir+current_tutor_id+'.xlsx') # attach workbook
-if today.weekday() == 0: # only send email if it is a Monday...
-	mail.send(current_tutor_id + '@adf.bham.ac.uk', msg) # send email
+#if today.weekday() == 0: # only send email if it is a Monday...
+#	mail.send(current_tutor_id + '@adf.bham.ac.uk', msg) # send email
 
 
 
