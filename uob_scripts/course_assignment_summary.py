@@ -35,7 +35,7 @@ reminder_dates = [
 #
 #
 #       TSO_email - email of TSO
-TSO_email = ['s.jones.2@bham.ac.uk']
+TSO_email = ['metmat-eso@contacts.bham.ac.uk']
 #
 #
 #

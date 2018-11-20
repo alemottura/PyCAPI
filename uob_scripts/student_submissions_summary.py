@@ -28,7 +28,7 @@
 #	Things that need to be set:
 #
 #	student_list - path to Excel file containing details of students
-student_list = '/mnt/metadmin/CANVASBOTS/UG/Input/Tutorial_Groups.xlsx'
+student_list = '/mnt/metadmin/CANVASBOTS/UG/Input/Tutorial_Groups_Canvas.xlsx'
 #
 #	output_dir - path to directory where any files should be saved
 output_dir = '/mnt/metadmin/CANVASBOTS/UG/Student_Submissions/'
@@ -199,7 +199,10 @@ for student in students:
 				uid_payload={}
 				uid_payload["search_term"] = student['canvas_id']
 				uid = capi.get("/courses/%s/search_users" % course["id"], payload=uid_payload)
-				student['uni_id'] = int(uid[0]['sis_user_id'])
+				if 'sis_user_id' in uid[0]:
+					student['uni_id'] = int(uid[0]['sis_user_id'])
+				else:
+					student['uni_id'] = 0
 	
 	# Loop through all submissions and figure out missing/late/graded submissions
 	for submission in student['submissions']:
@@ -270,7 +273,8 @@ for student in students:
 		for submission in student['late_submissions']:
 			ws['B'+str(i)] = submission['assignment']['name']
 			ws.merge_cells('B'+str(i)+':G'+str(i))
-			ws['H'+str(i)] = round(submission['duration_late']/86400,1)
+			if 'duration_late' in submission:
+				ws['H'+str(i)] = round(submission['duration_late']/86400,1)
 			i += 1
 		i += 1
 	
@@ -285,7 +289,7 @@ for student in students:
 		for submission in student['graded_submissions']:
 			ws['B'+str(i)] = submission['assignment']['name']
 			ws.merge_cells('B'+str(i)+':G'+str(i))
-			if submission['assignment']['points_possible'] != 0:
+			if submission['assignment']['points_possible'] != 0 and submission['score'] >= 0:
 				ws['H'+str(i)] = round((float(submission['score'])/float(submission['assignment']['points_possible']))*100, 0)
 			i += 1
 		i += 1
@@ -393,7 +397,7 @@ for student in students:
 		# Determine whether the submission was graded
 		if submission['workflow_state'] == 'graded':
 			ws[col_graded+str(i)] = 'Yes'
-			if submission['assignment']['points_possible'] != 0:
+			if submission['assignment']['points_possible'] != 0 and submission['score'] >= 0:
 				ws[col_grade+str(i)] = round((float(submission['score'])/float(submission['assignment']['points_possible']))*100, 0)
 			for cell in ws[str(i)+':'+str(i)]:
 					cell.font = Font(color='00006600')
@@ -401,7 +405,8 @@ for student in students:
 		# Determine whether submission was late		
 		if submission['late'] == True:
 			ws[col_late+str(i)] = 'Late'
-			ws[col_lated+str(i)] = round(submission['duration_late']/86400,1)
+			if 'duration_late' in submission:
+				ws[col_lated+str(i)] = round(submission['duration_late']/86400,1)
 			for cell in ws[str(i)+':'+str(i)]:
 				cell.font = Font(color='00FF0000')
 	
@@ -414,7 +419,12 @@ ws.auto_filter.ref = 'A1:AA'+str(i)
 wb.save(filename=output_dir+'student_submissions.xlsx')	
 
 
+import glob
 
+for filename in glob.glob(output_dir+'*.xlsx'):
+	basefilename = os.path.basename(filename)
+	os.chdir(output_dir)
+	capi.upload_course_file('35566',basefilename,file_path='/')
 
 
 
