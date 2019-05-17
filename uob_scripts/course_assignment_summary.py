@@ -29,8 +29,8 @@ offset_days = 14
 #
 #       reminder_dates - days from due date for reminder emails to be sent
 reminder_dates = [
-	[10], # day to email teachers
-	[14] # day to email teachers and TSO
+	[10], # day to email reminder
+	[14] # day to email final warning
 	]
 #
 #
@@ -276,14 +276,10 @@ for course in courses:
 			#cc_recipients = []
 			if (int(np.busday_count(due_date,today)) in reminder_dates[0]) and assignment['needs_grading_count'] != 0: # If reminder email for teacher is needed
 				# Collects email of all teachers for assignment to email
-				recipients = TSO_email
+				recipients = [TSO_email[0]]
 				recipients.extend(re.findall('[A-Za-z0-9\.]*@bham.ac.uk',assignment['description']))
-				if len(recipients) > 0:
-				#for course_teacher in course['teachers']:
-				#	teacher = capi.get_user(course_teacher['id'])
-				#	recipients.append(teacher['primary_email'])
-					message_subject = 'IMPORTANT: An assignment needs to be graded'
-					message_body = """Hi,
+				message_subject = 'IMPORTANT: An assignment needs to be graded'
+				message_body = """Hi,
 
 This is an IMPORTANT reminder that the due date for grading %s will be in 5 days and there are still submissions left ungraded.
 Could you please address this as soon as possible?
@@ -291,36 +287,29 @@ Link: %s
 
 Best Regards,
 Met&Mat Office
-					""" % (assignment['name'], assignment['html_url'])
-					# Now send email to teachers
-					msg = uob_utils.EMailMessage(", ".join(recipients), message_subject)
-					msg.body(message_body)
-					#all_recipients = recipients + cc_recipients
-					mail.send(recipients, msg) # Send email
+				""" % (assignment['name'], assignment['html_url'])
+				# Now send email to teachers
+				msg = uob_utils.EMailMessage(", ".join(recipients), message_subject)
+				msg.body(message_body)
+				mail.send(recipients, msg) # Send email
 			elif (int(np.busday_count(due_date,today)) in reminder_dates[1]) and assignment['needs_grading_count'] != 0: # If reminder email for teacher and TSO is needed
 				# Collects email of all teachers for assignment to email
-				recipients = TSO_email
+				recipients = [TSO_email[0]]
 				recipients.extend(re.findall('[A-Za-z0-9\.]*@bham.ac.uk',assignment['description']))
-				if len(recipients) > 0:
-				#for course_teacher in course['teachers']:
-				#	teacher = capi.get_user(course_teacher['id'])
-				#	recipients.append(teacher['primary_email'])
-				#cc_recipients.extend(TSO_email)
-					message_subject = 'ATTENTION REQUIRED: Assignment submissions still ungraded'
-					message_body = """Hi,
+				message_subject = 'ATTENTION REQUIRED: Assignment submissions still ungraded'
+				message_body = """Hi,
 
-This is an VERY IMPORTANT reminder that the due date for grading %s is today, and there are still submissions left ungraded.
+This is an VERY IMPORTANT reminder that the due date for grading %s is tomorrow, and there are still submissions left ungraded.
 This must be addressed immediately.
 Link: %s
 
 Best Regards,
 Met&Mat Office
-					""" % (assignment['name'], assignment['html_url'])
-					# Now send email to teachers and TSO
-					msg = uob_utils.EMailMessage(", ".join(recipients), message_subject)
-					msg.body(message_body)
-					#all_recipients = recipients + cc_recipients
-					mail.send(recipients, msg) # Send email
+				""" % (assignment['name'], assignment['html_url'])
+				# Now send email to teachers and TSO
+				msg = uob_utils.EMailMessage(", ".join(recipients), message_subject)
+				msg.body(message_body)
+				mail.send(recipients, msg) # Send email
 		if assignment['lock_at'] == None:
 			ws[col_lock+str(i)] = 'None set'
 		else:
