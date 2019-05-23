@@ -51,7 +51,7 @@ class CanvasAPI():
 		if to_json:
 			r = r.json()
 		return r # return result of request
-
+	
 	def get(self, api, to_json=True, payload=None, single=False, first_page_only=False):
 		url = self.api_url + api # compose url for the initial get request
 		responses = [] # prepare list to collate responses
@@ -91,6 +91,11 @@ class CanvasAPI():
 		else: # return the full list if it contains more than a single item
 			return list(reduce(lambda x, y: itertools.chain(x, y), responses))
 
+	def get_redirect(self, api):
+		url = self.api_url + api # compose url for the initial get request
+		r = self.session.get(url,allow_redirects=False)
+		return r.headers['Location']
+
 	def delete(self, api_url, payload=None):
 		url = self.api_url + api_url # compose url for delete request
 		if payload is None: # if no payload, send empty payload
@@ -110,9 +115,12 @@ class CanvasAPI():
 		"""Obtains the profile of a user."""
 		return self.get('/users/%s/profile' % user_id, single=True)
 
-	def get_users(self, course_id):
+	def get_users(self, course_id, enrollment_type=None):
 		"""Obtain users in a specific course."""
-		return self.get('/courses/%s/users' % course_id)
+		payload = {}
+		if enrollment_type != None:
+			payload['enrollment_type[]'] = enrollment_type
+		return self.get('/courses/%s/users' % course_id, payload=payload)
 
 	def get_course_groups(self, course_id):
 		"""Obtains groups within a course."""
@@ -135,6 +143,14 @@ class CanvasAPI():
 			payload['members[]'] = membership
 			self.put('/groups/%s' % (group_id), payload=payload)
 
+	def get_student_activity_on_course(self, course_id, user_id):
+		"""Returns the activity of a user on a particular course."""
+		return self.get('/courses/%s/analytics/users/%s/activity' % (course_id,user_id), single=True)
+	
+	def get_page_views(self, user_id):
+		"""Returns page views of a particular user."""
+		return self.get('/users/%s/page_views' % (user_id))
+	
 	def get_user_activity_summary(self):
 		"""Obtain summary of users activity"""
 		return self.get('/users/self/activity_stream/summary')
@@ -257,7 +273,6 @@ class CanvasAPI():
 		payload = {'grade_data[%s][file_ids]' % user_id: [pending_file['id']]}
 		return self.post('/courses/%s/assignments/%s/submissions/update_grades' % (course_id, assignment_id), payload=payload)
 		
-
 	def get_submission_attachments(self, submission, as_bytes=False):
 		"""
 		Get a dictionary containing the attachment files for this submission.
@@ -288,7 +303,19 @@ class CanvasAPI():
 		"""Update assignment details for a specific assignment. See online documentation for allowed parameters."""
 		payload = {'assignment[%s]' % parameter: value}
 		return self.put('/courses/%s/assignments/%s' % (course_id, assignment_id), payload=payload)
-	
+
+	def download_annotated_submission(self, course_id, assignment_id, user_id):
+		submission = self.get_assignment_submissions(course_id=course_id, assignment_ids=assignment_id, user_ids=user_id)
+		api_url = submission[0]['submissions'][0]['attachments'][0]['preview_url'][7:]
+		redirection = self.get_redirect(api_url)
+		annotated_pdf_url = redirection[0:-15]+'annotated.pdf'
+		r = requests.post(annotated_pdf_url)
+		check_url = annotated_pdf_url+'/is_ready'
+		while requests.get(check_url).content == '{"ready":false}':
+			sleep(1)
+		r = requests.get(annotated_pdf_url)
+		open('annotated.pdf', 'wb').write(r.content)
+		
 
 def datetime2unicode(datetimevar):
 	datetimevar = list(str(datetimevar))
