@@ -36,14 +36,14 @@ for course in courses:
 			else:
 				proposed_due_date = uob_utils.FindCorrespondingDate(datetime.datetime.strptime(assignment['due_at'], "%Y-%m-%dT%H:%M:%SZ").date(),2018)
 				proposed_due_datetime = datetime.datetime.strptime(str(proposed_due_date)+' 09:00:00', "%Y-%m-%d %H:%M:%S")
-				proposed_due_datetime = datetime.datetime(2019, 1, 18, 12, 00)
+				proposed_due_datetime = datetime.datetime(2019, 2, 1, 12, 00)
 				print ('  %s: %s (%s) -> (%s)' % (assignment['id'], assignment['name'], str(datetime.datetime.strptime(assignment['due_at'], "%Y-%m-%dT%H:%M:%SZ")), str(proposed_due_datetime)))
 				change = raw_input ('      Do you want to change the due date as above? (y/n): ')
 				if change == 'y':
 					if assignment['lock_at'] != None:
 						proposed_lock_date = uob_utils.FindCorrespondingDate(datetime.datetime.strptime(assignment['lock_at'], "%Y-%m-%dT%H:%M:%SZ").date(),2018)
 						proposed_lock_datetime = datetime.datetime.strptime(str(proposed_lock_date)+' 23:59:59', "%Y-%m-%d %H:%M:%S")
-						proposed_lock_datetime = datetime.datetime(2019, 2, 1, 12, 00)
+						proposed_lock_datetime = datetime.datetime(2019, 2, 15, 12, 00)
 						capi.update_assignment(course['id'], assignment['id'], 'lock_at', proposed_lock_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"))
 						
 					capi.update_assignment(course['id'], assignment['id'], 'due_at', proposed_due_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"))
