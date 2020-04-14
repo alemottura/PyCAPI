@@ -92,3 +92,5 @@ ENV/
 *.xls
 *.xlsx
 *.csv
+*.pdf
+*.txt
