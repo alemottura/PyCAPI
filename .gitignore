@@ -94,3 +94,5 @@ ENV/
 *.csv
 *.pdf
 *.txt
+*.tex
+*.log
